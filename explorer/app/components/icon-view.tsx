@@ -59,13 +59,36 @@ const IconView = ({
 
   const isSelected = (path: string) => draggingFiles.includes(path);
 
-  // 根据列数动态计算网格类名和图标大小
+  // 根据列数动态计算网格类名
   const gridColsClass = {
     1: "grid-cols-1",
     2: "grid-cols-2",
     3: "grid-cols-3",
     4: "grid-cols-4",
   }[iconColumns];
+
+  // 格式化文件名，确保后缀名可见
+  const formatFileName = (name: string, maxLength: number = 19) => {
+    if (name.length <= maxLength) return name;
+
+    const lastDotIndex = name.lastIndexOf(".");
+    if (lastDotIndex === -1 || lastDotIndex === 0) {
+      // 没有后缀名或以后缀名开头
+      return name.substring(0, maxLength - 3) + "...";
+    }
+
+    const extension = name.substring(lastDotIndex);
+    const baseName = name.substring(0, lastDotIndex);
+
+    // 计算基础名称的最大长度（总长度 - 后缀名长度 - 省略号）
+    const maxBaseLength = maxLength - extension.length - 3;
+
+    if (baseName.length <= maxBaseLength) {
+      return name;
+    }
+
+    return baseName.substring(0, maxBaseLength) + "..." + extension;
+  };
 
   // 根据列数调整图标容器大小（保持高:宽 = 5:4，即 aspect-ratio 4/5）
   // 所有列数都使用 w-full + aspect-[4/5]，让图片撑满列宽并自动计算高度
@@ -130,8 +153,8 @@ const IconView = ({
                 )}
               </div>
               <Tooltip title={item.name}>
-                <span className="text-xs text-gray-700 text-center break-all line-clamp-2 w-full block">
-                  {item.name}
+                <span className="text-xs text-gray-700 text-center break-all w-full block max-h-[2.2rem] overflow-hidden line-clamp-2">
+                  {formatFileName(item.name)}
                 </span>
               </Tooltip>
             </div>
