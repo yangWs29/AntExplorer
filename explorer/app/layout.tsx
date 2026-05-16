@@ -1,6 +1,7 @@
 import React from "react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
 import Providers from "./providers";
 import "./globals.css";
 
@@ -10,7 +11,9 @@ const RootLayout = async ({ children }: React.PropsWithChildren) => {
   return (
     <html lang="en">
       <body style={{ minHeight: "100vh" }}>
-        <Providers session={session}>{children}</Providers>
+        <Providers session={session}>
+          <AntdRegistry>{children}</AntdRegistry>
+        </Providers>
       </body>
     </html>
   );

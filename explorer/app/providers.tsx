@@ -2,9 +2,10 @@
 
 import React from "react";
 import { SessionProvider } from "next-auth/react";
-import { theme, App } from "antd";
+import { theme, App, Layout } from "antd";
 import type { Session } from "next-auth";
 import { XProvider } from "@ant-design/x";
+import { Content } from "antd/es/layout/layout";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -23,7 +24,11 @@ const Providers: React.FC<ProvidersProps> = ({ children, session }) => {
         }}
         componentSize="small"
       >
-        <App>{children}</App>
+        <App>
+          <Layout style={{ minHeight: "100vh" }}>
+            <Content>{children}</Content>
+          </Layout>
+        </App>
       </XProvider>
     </SessionProvider>
   );
