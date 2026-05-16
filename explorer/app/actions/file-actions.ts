@@ -4,6 +4,40 @@ import { readdir, stat, rename, copyFile, rm } from "fs/promises";
 import { join, basename } from "path";
 import { FileItem } from "@/app/store/explorer-modal-store";
 
+// 递归计算文件夹大小
+async function calculateDirSize(dirPath: string): Promise<number> {
+  let totalSize = 0;
+  const entries = await readdir(dirPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = join(dirPath, entry.name);
+    
+    if (entry.isDirectory()) {
+      // 递归计算子文件夹大小
+      totalSize += await calculateDirSize(fullPath);
+    } else {
+      // 获取文件大小
+      const stats = await stat(fullPath);
+      totalSize += stats.size;
+    }
+  }
+
+  return totalSize;
+}
+
+export async function getFolderSize(folderPath: string): Promise<number> {
+  try {
+    const stats = await stat(folderPath);
+    if (!stats.isDirectory()) {
+      throw new Error("Path is not a directory");
+    }
+    return await calculateDirSize(folderPath);
+  } catch (error) {
+    console.error("Error calculating folder size:", error);
+    throw error;
+  }
+}
+
 export async function readDirectory(dirPath?: string): Promise<FileItem[]> {
   try {
     const targetPath = dirPath || process.env.NEXT_PUBLIC_DIR;
@@ -24,6 +58,8 @@ export async function readDirectory(dirPath?: string): Promise<FileItem[]> {
         name: file,
         path: fullPath,
         isDirectory: stats.isDirectory(),
+        size: stats.size,
+        modifiedTime: stats.mtime,
       });
     }
 

@@ -4,6 +4,8 @@ export interface FileItem {
   name: string;
   path: string;
   isDirectory: boolean;
+  size?: number; // 文件大小（字节）
+  modifiedTime?: Date; // 修改时间
 }
 
 export type ViewMode = "list" | "icon";
