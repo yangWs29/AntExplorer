@@ -1,0 +1,9 @@
+.idea
+
+# Docker 和 Docker Compose
+manage/.dockerignore
+manage/Dockerfile
+docker-compose.yml
+
+# GitHub Actions
+.github/
