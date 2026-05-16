@@ -1,7 +1,7 @@
 "use client";
 
 import { FolderOutlined, FileOutlined } from "@ant-design/icons";
-import { List } from "antd";
+import { Divider } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import {
   useGlobalImagePreview,
@@ -65,32 +65,30 @@ const ListView = ({
   const isSelected = (path: string) => draggingFiles.includes(path);
 
   return (
-    <List
-      dataSource={fileList}
-      renderItem={(item) => {
+    <div>
+      {fileList.map((item, index) => {
         const isImage = isImageFile(item.name);
         const imageUrl = isImage
           ? `/api/file?path=${encodeURIComponent(item.path)}`
           : null;
 
         return (
-          <FileContextMenu
-            key={item.path}
-            modalId={modalId}
-            filePath={item.path}
-            fileName={item.name}
-            isDirectory={item.isDirectory}
-          >
-            <List.Item
-              className={`cursor-pointer px-4 hover:bg-blue-100 ${
-                isSelected(item.path) ? "opacity-50" : ""
-              }`}
-              onClick={() => handleItemClick(item)}
-              draggable
-              onDragStart={(e) => handleItemDragStart(e, item.path)}
-              onDragEnd={onDragEnd}
+          <div key={item.path}>
+            <FileContextMenu
+              modalId={modalId}
+              filePath={item.path}
+              fileName={item.name}
+              isDirectory={item.isDirectory}
             >
-              <div className="flex items-center gap-3 w-full">
+              <div
+                className={`cursor-pointer px-4 py-3 hover:bg-blue-100 flex items-center gap-3 w-full ${
+                  isSelected(item.path) ? "opacity-50" : ""
+                }`}
+                onClick={() => handleItemClick(item)}
+                draggable
+                onDragStart={(e) => handleItemDragStart(e, item.path)}
+                onDragEnd={onDragEnd}
+              >
                 {item.isDirectory ? (
                   <FolderOutlined className="text-blue-500 text-lg" />
                 ) : isImage && imageUrl ? (
@@ -108,11 +106,12 @@ const ListView = ({
                 )}
                 <span className="flex-1">{item.name}</span>
               </div>
-            </List.Item>
-          </FileContextMenu>
+            </FileContextMenu>
+            {index < fileList.length - 1 && <Divider style={{ margin: "0" }} />}
+          </div>
         );
-      }}
-    />
+      })}
+    </div>
   );
 };
 
