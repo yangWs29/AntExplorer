@@ -38,6 +38,73 @@ export async function getFolderSize(folderPath: string): Promise<number> {
   }
 }
 
+// 获取文件的硬链接信息
+export async function getFileHardLinks(filePath: string): Promise<{
+  linkCount: number;
+  inode: number;
+}> {
+  try {
+    const stats = await stat(filePath);
+    return {
+      linkCount: stats.nlink,
+      inode: stats.ino,
+    };
+  } catch (error) {
+    console.error("Error getting file hard links:", error);
+    throw error;
+  }
+}
+
+// 查找具有相同 inode 的所有硬链接路径
+export async function findHardLinks(filePath: string, searchDir?: string): Promise<string[]> {
+  try {
+    const targetStats = await stat(filePath);
+    const targetInode = targetStats.ino;
+    const targetDev = targetStats.dev;
+    
+    // 如果没有指定搜索目录，使用文件所在目录
+    const searchPath = searchDir || filePath.substring(0, filePath.lastIndexOf("/"));
+    
+    const hardLinks: string[] = [];
+    
+    // 递归搜索目录
+    async function searchDirectory(dirPath: string) {
+      try {
+        const entries = await readdir(dirPath, { withFileTypes: true });
+        
+        for (const entry of entries) {
+          const fullPath = join(dirPath, entry.name);
+          
+          try {
+            const entryStats = await stat(fullPath);
+            
+            // 检查是否是同一个设备的同一个 inode
+            if (entryStats.ino === targetInode && entryStats.dev === targetDev) {
+              hardLinks.push(fullPath);
+            }
+            
+            // 如果是目录且不是符号链接，递归搜索
+            if (entry.isDirectory() && !entry.isSymbolicLink()) {
+              await searchDirectory(fullPath);
+            }
+          } catch (err) {
+            // 忽略无法访问的文件
+            continue;
+          }
+        }
+      } catch (err) {
+        // 忽略无法访问的目录
+      }
+    }
+    
+    await searchDirectory(searchPath);
+    return hardLinks;
+  } catch (error) {
+    console.error("Error finding hard links:", error);
+    throw error;
+  }
+}
+
 export async function readDirectory(dirPath?: string): Promise<FileItem[]> {
   try {
     const targetPath = dirPath || process.env.NEXT_PUBLIC_DIR;
