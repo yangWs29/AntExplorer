@@ -2,7 +2,7 @@
 
 import { readdir, stat } from "fs/promises";
 import { join } from "path";
-import { FileItem } from "@/app/store/file-store";
+import { FileItem } from "@/app/store/explorer-modal-store";
 
 export async function readDirectory(dirPath?: string): Promise<FileItem[]> {
   try {
