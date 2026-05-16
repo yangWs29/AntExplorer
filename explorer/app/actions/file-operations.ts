@@ -1,6 +1,6 @@
 "use server";
 
-import { rename, stat } from "fs/promises";
+import { rename } from "fs/promises";
 import { join, basename } from "path";
 
 export async function moveFile(sourcePath: string, targetDir: string) {

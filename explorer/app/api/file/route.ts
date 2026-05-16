@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
-import { join } from "path";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

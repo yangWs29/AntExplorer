@@ -150,7 +150,7 @@ const FileList = ({ modalId, initialPath }: FileListProps) => {
   if (fileList.length === 0) {
     return (
       <div
-        className={`min-h-[200px] flex items-center justify-center ${
+        className={`min-h-50 flex items-center justify-center ${
           isDraggingOver
             ? "bg-blue-50 border-2 border-dashed border-blue-300"
             : ""
@@ -171,7 +171,7 @@ const FileList = ({ modalId, initialPath }: FileListProps) => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`min-h-[200px] max-h-[calc(70vh-180px)] overflow-y-auto transition-colors ${
+      className={`min-h-50 max-h-[calc(70vh-180px)] overflow-y-auto transition-colors ${
         isDraggingOver ? "bg-blue-50" : ""
       }`}
     >
