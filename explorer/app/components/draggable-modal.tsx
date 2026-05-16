@@ -1,0 +1,139 @@
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import { CloseOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import { Card, Button, Breadcrumb } from "antd";
+import {
+  useModalStore,
+  type ModalInstance,
+} from "@/app/store/explorer-modal-store";
+import FileList from "./file-list";
+import ViewModeToggle from "./view-mode-toggle";
+
+interface DraggableModalProps {
+  modal: ModalInstance;
+}
+
+const DraggableModal = ({ modal }: DraggableModalProps) => {
+  const { closeModal, updatePosition, bringToFront, goBack, canGoBack } =
+    useModalStore();
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!modalRef.current) return;
+
+    setIsDragging(true);
+    bringToFront(modal.id);
+
+    const rect = modalRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+
+      updatePosition(modal.id, { x: newX, y: newY });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, dragOffset, modal.id, updatePosition]);
+
+  // 生成面包屑路径
+  const breadcrumbItems = modal.history
+    .slice(0, modal.historyIndex + 1)
+    .map((path, index) => {
+      const folderName = path.split("/").pop() || path;
+      return {
+        title: index === 0 ? "Root" : folderName,
+        key: path,
+      };
+    });
+
+  const style: React.CSSProperties = {
+    position: "fixed",
+    left: modal.position.x,
+    top: modal.position.y,
+    zIndex: modal.zIndex,
+    width: "600px",
+    maxHeight: "70vh",
+  };
+
+  return (
+    <Card
+      ref={modalRef}
+      className="overflow-hidden"
+      style={style}
+      onMouseDown={() => bringToFront(modal.id)}
+      styles={{
+        body: {
+          padding: 0,
+          maxHeight: "calc(70vh - 140px)",
+        },
+        header: {
+          cursor: "move",
+          userSelect: "none",
+          padding: "12px 16px",
+        },
+        actions: {
+          padding: "0px 16px",
+        },
+      }}
+      title={
+        <div
+          className="cursor-move select-none flex items-center justify-between"
+          onMouseDown={handleMouseDown}
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {canGoBack(modal.id) && (
+              <Button
+                type="text"
+                size="small"
+                icon={<ArrowLeftOutlined />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goBack(modal.id);
+                }}
+              />
+            )}
+            <Breadcrumb items={breadcrumbItems} className="flex-1" />
+          </div>
+          <Button
+            type="text"
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              closeModal(modal.id);
+            }}
+          />
+        </div>
+      }
+      actions={[<ViewModeToggle key="view-mode" modalId={modal.id} />]}
+    >
+      <FileList modalId={modal.id} initialPath={modal.path} />
+    </Card>
+  );
+};
+
+export default DraggableModal;
