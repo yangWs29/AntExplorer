@@ -29,6 +29,7 @@ const IconView = ({
 
   const modal = getModalById(modalId);
   const fileList = modal?.fileList || [];
+  const iconColumns = modal?.iconColumns || 4;
 
   const handleItemClick = (item: (typeof fileList)[0]) => {
     if (item.isDirectory) {
@@ -58,8 +59,26 @@ const IconView = ({
 
   const isSelected = (path: string) => draggingFiles.includes(path);
 
+  // 根据列数动态计算网格类名和图标大小
+  const gridColsClass = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+  }[iconColumns];
+
+  // 根据列数调整图标容器大小（保持高:宽 = 5:4，即 aspect-ratio 4/5）
+  // 所有列数都使用 w-full + aspect-[4/5]，让图片撑满列宽并自动计算高度
+  const iconSize = "w-full aspect-[4/5]";
+
+  // 1 列模式使用横向布局，其他模式使用纵向布局
+  const isSingleColumn = iconColumns === 1;
+
+  // 所有列数使用统一的字体大小
+  const fontSize = 64;
+
   return (
-    <div className="grid grid-cols-4 gap-4 p-4">
+    <div className={`grid ${gridColsClass} gap-4 p-4`}>
       {fileList.map((item) => {
         const isImage = isImageFile(item.name);
         const imageUrl = isImage
@@ -75,7 +94,7 @@ const IconView = ({
             isDirectory={item.isDirectory}
           >
             <div
-              className={`flex flex-col items-center p-3 rounded-lg hover:bg-blue-100 cursor-pointer transition-colors duration-200 group h-28 overflow-hidden ${
+              className={`flex flex-col items-center p-3 rounded-lg hover:bg-blue-100 cursor-pointer transition-colors duration-200 group h-auto overflow-hidden ${
                 isSelected(item.path) ? "opacity-50" : ""
               }`}
               onClick={() => handleItemClick(item)}
@@ -83,14 +102,18 @@ const IconView = ({
               onDragStart={(e) => handleItemDragStart(e, item.path)}
               onDragEnd={onDragEnd}
             >
-              <div className="mb-2 w-12 h-12 flex items-center justify-center">
+              <div
+                className={`mb-2 ${iconSize} flex items-center justify-center`}
+              >
                 {item.isDirectory ? (
                   <FolderOutlined
                     className="text-blue-500"
-                    style={{ fontSize: 48 }}
+                    style={{ fontSize }}
                   />
                 ) : isImage && imageUrl ? (
-                  <div className="w-12 h-12 flex items-center justify-center relative">
+                  <div
+                    className={`${iconSize} flex items-center justify-center relative`}
+                  >
                     <NextImage
                       src={imageUrl}
                       alt={item.name}
@@ -102,7 +125,7 @@ const IconView = ({
                 ) : (
                   <FileOutlined
                     className="text-gray-500"
-                    style={{ fontSize: 48 }}
+                    style={{ fontSize }}
                   />
                 )}
               </div>

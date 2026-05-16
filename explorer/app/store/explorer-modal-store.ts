@@ -24,6 +24,7 @@ export interface ModalInstance {
   fileList: FileItem[]; // 文件列表
   loading: boolean; // 加载状态
   viewMode: ViewMode; // 视图模式
+  iconColumns: 1 | 2 | 3 | 4; // 图标模式列数
 }
 
 interface ExplorerModalStore {
@@ -41,6 +42,7 @@ interface ExplorerModalStore {
   setModalLoading: (id: string, loading: boolean) => void;
   getModalById: (id: string) => ModalInstance | undefined;
   setModalViewMode: (id: string, mode: ViewMode) => void;
+  setModalIconColumns: (id: string, columns: 1 | 2 | 3 | 4) => void;
   setCopiedFiles: (files: string[]) => void;
   clearCopiedFiles: () => void;
 }
@@ -63,6 +65,7 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         fileList: [],
         loading: true,
         viewMode: "icon",
+        iconColumns: 4,
       };
       return {
         modals: [...state.modals, newModal],
@@ -144,6 +147,12 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
     set((state) => ({
       modals: state.modals.map((modal) =>
         modal.id === id ? { ...modal, viewMode: mode } : modal
+      ),
+    })),
+  setModalIconColumns: (id, columns) =>
+    set((state) => ({
+      modals: state.modals.map((modal) =>
+        modal.id === id ? { ...modal, iconColumns: columns } : modal
       ),
     })),
   setCopiedFiles: (files) => set({ copiedFiles: files }),
