@@ -8,6 +8,7 @@ import {
   isImageFile,
 } from "@/app/hooks/global-image-preview-context";
 import NextImage from "next/image";
+import { FileContextMenu } from "./file-context-menu";
 
 interface IconViewProps {
   modalId: string;
@@ -66,45 +67,52 @@ const IconView = ({
           : null;
 
         return (
-          <div
+          <FileContextMenu
             key={item.path}
-            className={`flex flex-col items-center p-3 rounded-lg hover:bg-blue-100 cursor-pointer transition-colors duration-200 group h-28 overflow-hidden ${
-              isSelected(item.path) ? "opacity-50" : ""
-            }`}
-            onClick={() => handleItemClick(item)}
-            draggable
-            onDragStart={(e) => handleItemDragStart(e, item.path)}
-            onDragEnd={onDragEnd}
+            modalId={modalId}
+            filePath={item.path}
+            fileName={item.name}
+            isDirectory={item.isDirectory}
           >
-            <div className="mb-2 w-12 h-12 flex items-center justify-center">
-              {item.isDirectory ? (
-                <FolderOutlined
-                  className="text-blue-500"
-                  style={{ fontSize: 48 }}
-                />
-              ) : isImage && imageUrl ? (
-                <div className="w-12 h-12 flex items-center justify-center relative">
-                  <NextImage
-                    src={imageUrl}
-                    alt={item.name}
-                    fill
-                    style={{ objectFit: "cover" }}
-                    unoptimized
+            <div
+              className={`flex flex-col items-center p-3 rounded-lg hover:bg-blue-100 cursor-pointer transition-colors duration-200 group h-28 overflow-hidden ${
+                isSelected(item.path) ? "opacity-50" : ""
+              }`}
+              onClick={() => handleItemClick(item)}
+              draggable
+              onDragStart={(e) => handleItemDragStart(e, item.path)}
+              onDragEnd={onDragEnd}
+            >
+              <div className="mb-2 w-12 h-12 flex items-center justify-center">
+                {item.isDirectory ? (
+                  <FolderOutlined
+                    className="text-blue-500"
+                    style={{ fontSize: 48 }}
                   />
-                </div>
-              ) : (
-                <FileOutlined
-                  className="text-gray-500"
-                  style={{ fontSize: 48 }}
-                />
-              )}
+                ) : isImage && imageUrl ? (
+                  <div className="w-12 h-12 flex items-center justify-center relative">
+                    <NextImage
+                      src={imageUrl}
+                      alt={item.name}
+                      fill
+                      style={{ objectFit: "cover" }}
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <FileOutlined
+                    className="text-gray-500"
+                    style={{ fontSize: 48 }}
+                  />
+                )}
+              </div>
+              <Tooltip title={item.name}>
+                <span className="text-xs text-gray-700 text-center break-all line-clamp-2 w-full block">
+                  {item.name}
+                </span>
+              </Tooltip>
             </div>
-            <Tooltip title={item.name}>
-              <span className="text-xs text-gray-700 text-center break-all line-clamp-2 w-full block">
-                {item.name}
-              </span>
-            </Tooltip>
-          </div>
+          </FileContextMenu>
         );
       })}
     </div>

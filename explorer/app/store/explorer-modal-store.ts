@@ -29,6 +29,7 @@ export interface ModalInstance {
 interface ExplorerModalStore {
   modals: ModalInstance[];
   nextZIndex: number;
+  copiedFiles: string[]; // 全局复制的文件列表
   openModal: (title: string, path: string) => void;
   closeModal: (id: string) => void;
   updatePosition: (id: string, position: ModalPosition) => void;
@@ -40,11 +41,14 @@ interface ExplorerModalStore {
   setModalLoading: (id: string, loading: boolean) => void;
   getModalById: (id: string) => ModalInstance | undefined;
   setModalViewMode: (id: string, mode: ViewMode) => void;
+  setCopiedFiles: (files: string[]) => void;
+  clearCopiedFiles: () => void;
 }
 
 export const useModalStore = create<ExplorerModalStore>((set, get) => ({
   modals: [],
   nextZIndex: 1000,
+  copiedFiles: [],
   openModal: (title, path) =>
     set((state) => {
       const id = `modal-${Date.now()}-${Math.random()}`;
@@ -142,4 +146,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         modal.id === id ? { ...modal, viewMode: mode } : modal
       ),
     })),
+  setCopiedFiles: (files) => set({ copiedFiles: files }),
+  clearCopiedFiles: () => set({ copiedFiles: [] }),
 }));

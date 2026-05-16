@@ -8,6 +8,7 @@ import {
   isImageFile,
 } from "@/app/hooks/global-image-preview-context";
 import NextImage from "next/image";
+import { FileContextMenu } from "./file-context-menu";
 
 interface ListViewProps {
   modalId: string;
@@ -73,34 +74,42 @@ const ListView = ({
           : null;
 
         return (
-          <List.Item
-            className={`cursor-pointer px-4 hover:bg-blue-100 ${
-              isSelected(item.path) ? "opacity-50" : ""
-            }`}
-            onClick={() => handleItemClick(item)}
-            draggable
-            onDragStart={(e) => handleItemDragStart(e, item.path)}
-            onDragEnd={onDragEnd}
+          <FileContextMenu
+            key={item.path}
+            modalId={modalId}
+            filePath={item.path}
+            fileName={item.name}
+            isDirectory={item.isDirectory}
           >
-            <div className="flex items-center gap-3 w-full">
-              {item.isDirectory ? (
-                <FolderOutlined className="text-blue-500 text-lg" />
-              ) : isImage && imageUrl ? (
-                <div className="w-6 h-6 flex items-center justify-center relative">
-                  <NextImage
-                    src={imageUrl}
-                    alt={item.name}
-                    fill
-                    style={{ objectFit: "cover" }}
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <FileOutlined className="text-gray-500 text-lg" />
-              )}
-              <span className="flex-1">{item.name}</span>
-            </div>
-          </List.Item>
+            <List.Item
+              className={`cursor-pointer px-4 hover:bg-blue-100 ${
+                isSelected(item.path) ? "opacity-50" : ""
+              }`}
+              onClick={() => handleItemClick(item)}
+              draggable
+              onDragStart={(e) => handleItemDragStart(e, item.path)}
+              onDragEnd={onDragEnd}
+            >
+              <div className="flex items-center gap-3 w-full">
+                {item.isDirectory ? (
+                  <FolderOutlined className="text-blue-500 text-lg" />
+                ) : isImage && imageUrl ? (
+                  <div className="w-6 h-6 flex items-center justify-center relative">
+                    <NextImage
+                      src={imageUrl}
+                      alt={item.name}
+                      fill
+                      style={{ objectFit: "cover" }}
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <FileOutlined className="text-gray-500 text-lg" />
+                )}
+                <span className="flex-1">{item.name}</span>
+              </div>
+            </List.Item>
+          </FileContextMenu>
         );
       }}
     />

@@ -1,7 +1,7 @@
 "use server";
 
-import { readdir, stat } from "fs/promises";
-import { join } from "path";
+import { readdir, stat, rename, copyFile, rm } from "fs/promises";
+import { join, basename } from "path";
 import { FileItem } from "@/app/store/explorer-modal-store";
 
 export async function readDirectory(dirPath?: string): Promise<FileItem[]> {
@@ -39,4 +39,51 @@ export async function readDirectory(dirPath?: string): Promise<FileItem[]> {
     console.error("Error reading directory:", error);
     throw error;
   }
+}
+
+export async function moveFile(sourcePath: string, targetDir: string) {
+  try {
+    const fileName = basename(sourcePath);
+    const targetPath = join(targetDir, fileName);
+
+    await rename(sourcePath, targetPath);
+
+    return { success: true, targetPath };
+  } catch (error) {
+    console.error("Error moving file:", error);
+    throw error;
+  }
+}
+
+export async function moveFiles(
+  sourcePaths: string[],
+  targetDir: string,
+): Promise<void> {
+  for (const sourcePath of sourcePaths) {
+    await moveFile(sourcePath, targetDir);
+  }
+}
+
+export async function copyFiles(
+  sourcePaths: string[],
+  targetDir: string,
+): Promise<void> {
+  for (const sourcePath of sourcePaths) {
+    const fileName = basename(sourcePath);
+    const targetPath = join(targetDir, fileName);
+    await copyFile(sourcePath, targetPath);
+  }
+}
+
+export async function deleteFiles(filePaths: string[]): Promise<void> {
+  for (const filePath of filePaths) {
+    await rm(filePath, { recursive: true, force: true });
+  }
+}
+
+export async function pasteFiles(
+  sourcePaths: string[],
+  targetDir: string,
+): Promise<void> {
+  await copyFiles(sourcePaths, targetDir);
 }

@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Spin, Empty, App } from "antd";
+import { Spin, Empty, App, Dropdown, MenuProps } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import { readDirectory } from "@/app/actions/file-actions";
-import { moveFiles } from "@/app/actions/file-operations";
+import { moveFiles, pasteFiles } from "@/app/actions/file-actions";
 import ListView from "./list-view";
 import IconView from "./icon-view";
+import { SnippetsOutlined } from "@ant-design/icons";
 
 interface FileListProps {
   modalId: string;
@@ -14,7 +15,13 @@ interface FileListProps {
 }
 
 const FileList = ({ modalId, initialPath }: FileListProps) => {
-  const { getModalById, setModalFileList, setModalLoading } = useModalStore();
+  const {
+    getModalById,
+    setModalFileList,
+    setModalLoading,
+    copiedFiles,
+    clearCopiedFiles,
+  } = useModalStore();
   const [draggingFiles, setDraggingFiles] = useState<string[]>([]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const { message } = App.useApp();
@@ -139,6 +146,42 @@ const FileList = ({ modalId, initialPath }: FileListProps) => {
     }
   };
 
+  // 空白处粘贴
+  const handlePaste = async () => {
+    if (copiedFiles.length === 0) {
+      message.warning("没有可粘贴的文件");
+      return;
+    }
+
+    try {
+      setModalLoading(modalId, true);
+      await pasteFiles(copiedFiles, initialPath);
+
+      // 刷新文件列表
+      const files = await readDirectory(initialPath);
+      setModalFileList(modalId, files);
+
+      message.success("粘贴成功");
+      clearCopiedFiles();
+    } catch (error) {
+      message.error("粘贴失败");
+      console.error(error);
+    } finally {
+      setModalLoading(modalId, false);
+    }
+  };
+
+  // 空白处右键菜单项
+  const emptyMenuItems: MenuProps["items"] = [
+    {
+      key: "paste",
+      label: "粘贴",
+      icon: <SnippetsOutlined />,
+      disabled: copiedFiles.length === 0,
+      onClick: handlePaste,
+    },
+  ];
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -166,32 +209,36 @@ const FileList = ({ modalId, initialPath }: FileListProps) => {
   }
 
   return (
-    <div
-      ref={scrollRef}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className={`min-h-50 max-h-[calc(70vh-180px)] overflow-y-auto transition-colors ${
-        isDraggingOver ? "bg-blue-50" : ""
-      }`}
-    >
-      {/* File List */}
-      {viewMode === "list" ? (
-        <ListView
-          modalId={modalId}
-          draggingFiles={draggingFiles}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        />
-      ) : (
-        <IconView
-          modalId={modalId}
-          draggingFiles={draggingFiles}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        />
-      )}
-    </div>
+    <Dropdown menu={{ items: emptyMenuItems }} trigger={["contextMenu"]}>
+      <div>
+        <div
+          ref={scrollRef}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`min-h-50 max-h-[calc(70vh-180px)] overflow-y-auto transition-colors ${
+            isDraggingOver ? "bg-blue-50" : ""
+          }`}
+        >
+          {/* File List */}
+          {viewMode === "list" ? (
+            <ListView
+              modalId={modalId}
+              draggingFiles={draggingFiles}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            />
+          ) : (
+            <IconView
+              modalId={modalId}
+              draggingFiles={draggingFiles}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            />
+          )}
+        </div>
+      </div>
+    </Dropdown>
   );
 };
 
