@@ -28,11 +28,13 @@ export interface FileDetailData {
 export interface CompressData {
   sourcePath: string; // 要压缩的文件/文件夹路径
   sourceName: string; // 文件/文件夹名称
+  targetDir?: string; // 目标目录（可选）
 }
 
 export interface ExtractData {
   archivePath: string; // 压缩包路径
   archiveName: string; // 压缩包名称
+  targetDir?: string; // 目标目录（可选）
 }
 
 export interface ModalInstance {

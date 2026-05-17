@@ -3,9 +3,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Form, Input, Button, App } from "antd";
 import type { TextAreaRef } from "antd/es/input/TextArea";
-const { TextArea } = Input;
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import { extractArchive, readDirectory } from "@/app/actions/file-actions";
+import DirectoryTreeSelector from "./directory-tree-selector";
+import { getDisplayPath, getFullPath } from "@/app/utils/file-utils";
+
+const { TextArea } = Input;
 
 interface ExtractContentProps {
   modalId: string;
@@ -31,27 +34,46 @@ const ExtractContent = ({ modalId }: ExtractContentProps) => {
   const modal = getModalById(modalId);
   const extractData = modal?.extractData;
 
+  // 获取当前压缩包所在目录
+  const currentDirPath = extractData?.archivePath
+    ? extractData.archivePath.substring(
+        0,
+        extractData.archivePath.lastIndexOf("/"),
+      )
+    : "";
+
+  // 获取根目录（环境变量）
+  const rootDir = process.env.NEXT_PUBLIC_DIR || "/";
+
   // 添加日志
   const addLog = (log: string) => {
     setLogs((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${log}`]);
   };
 
-  const handleExtract = async (values: { extractName: string }) => {
+  const handleExtract = async (values: {
+    extractName: string;
+    targetDir?: string;
+  }) => {
     if (!extractData) return;
 
     try {
       setIsExtracting(true);
       setModalLoading(modalId, true);
       addLog(`开始解压缩: ${extractData.archiveName}`);
-      addLog(`目标目录: ${values.extractName}`);
+      addLog(`解压目录名: ${values.extractName}`);
 
       // 获取压缩包所在目录
       const archiveDirPath = extractData.archivePath.substring(
         0,
         extractData.archivePath.lastIndexOf("/"),
       );
-      const targetDirPath = `${archiveDirPath}/${values.extractName}`;
+      // 将显示路径转换为完整路径
+      const displayTargetDir =
+        values.targetDir || getDisplayPath(archiveDirPath, rootDir);
+      const baseTargetDir = getFullPath(displayTargetDir, rootDir);
+      const targetDirPath = `${baseTargetDir}/${values.extractName}`;
 
+      addLog(`目标目录: ${baseTargetDir}`);
       addLog(`完整路径: ${targetDirPath}`);
 
       const result = await extractArchive(
@@ -64,8 +86,8 @@ const ExtractContent = ({ modalId }: ExtractContentProps) => {
       // 查找并刷新所有匹配的 explorer 窗口
       const allModals = useModalStore.getState().modals;
       allModals.forEach((m) => {
-        if (m.type === "explorer" && m.path === archiveDirPath) {
-          readDirectory(archiveDirPath).then((files) => {
+        if (m.type === "explorer" && m.path === baseTargetDir) {
+          readDirectory(baseTargetDir).then((files) => {
             setModalFileList(m.id, files);
           });
         }
@@ -90,10 +112,20 @@ const ExtractContent = ({ modalId }: ExtractContentProps) => {
         layout="vertical"
         onFinish={handleExtract}
         initialValues={{
+          targetDir:
+            extractData?.targetDir || getDisplayPath(currentDirPath, rootDir),
           extractName: extractData?.archiveName?.replace(/\.[^/.]+$/, "") || "",
         }}
         disabled={isExtracting}
       >
+        <Form.Item
+          label="目标目录"
+          name="targetDir"
+          rules={[{ required: true, message: "请选择目标目录" }]}
+        >
+          <DirectoryTreeSelector placeholder="点击选择目标目录" />
+        </Form.Item>
+
         <Form.Item
           label="解压缩目录名"
           name="extractName"

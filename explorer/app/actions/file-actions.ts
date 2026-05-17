@@ -5,7 +5,6 @@ import { join, basename, extname } from "path";
 import { FileItem } from "@/app/store/explorer-modal-store";
 import Seven from "node-7z";
 import sevenBin from "7zip-bin-full";
-import { isArchiveFile as checkArchiveFile } from "@/app/utils/file-utils";
 
 // 获取项目根目录（Next.js 会自动设置 PROJECT_CWD）
 const projectRoot = process.cwd();
@@ -212,10 +211,11 @@ export async function pasteFiles(
 export async function compressFile(
   sourcePath: string,
   archiveName?: string,
+  targetDir?: string,
 ): Promise<{ success: boolean; archivePath: string }> {
   try {
     const fileName = basename(sourcePath);
-    const dirPath = join(sourcePath, "..");
+    const dirPath = targetDir || join(sourcePath, "..");
     const archiveFileName = archiveName || `${fileName}.7z`;
     const archivePath = join(dirPath, archiveFileName);
 
@@ -269,7 +269,52 @@ export async function extractArchive(
   }
 }
 
-// 检查文件是否是压缩包
-export async function isArchiveFile(fileName: string): Promise<boolean> {
-  return checkArchiveFile(fileName);
+// 获取目录树结构（初始加载第一层）
+export async function getDirectoryTree(
+  dirPath: string,
+): Promise<{ path: string; name: string }[]> {
+  try {
+    const entries = await readdir(dirPath, { withFileTypes: true });
+    const result = [];
+
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const childPath = join(dirPath, entry.name);
+        result.push({
+          path: childPath,
+          name: entry.name,
+        });
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error reading directory tree:", error);
+    return [];
+  }
+}
+
+// 获取子目录（懒加载）
+export async function getSubDirectories(
+  dirPath: string,
+): Promise<{ path: string; name: string }[]> {
+  try {
+    const entries = await readdir(dirPath, { withFileTypes: true });
+    const result = [];
+
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const childPath = join(dirPath, entry.name);
+        result.push({
+          path: childPath,
+          name: entry.name,
+        });
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error reading subdirectories:", error);
+    return [];
+  }
 }
