@@ -12,9 +12,11 @@ import { isImageFile } from "@/app/hooks/global-image-preview-context";
 import { isVideoFile } from "@/app/hooks/use-video-preview";
 import { useFileItemClick } from "@/app/hooks/use-file-item-click";
 import { useFileItemDrag } from "@/app/hooks/use-file-item-drag";
+import { useVideoThumbnail } from "@/app/hooks/use-video-thumbnail";
 import { isArchiveFile } from "@/app/utils/file-utils";
 import NextImage from "next/image";
 import { FileContextMenu } from "./file-context-menu";
+import { FileCard } from "@ant-design/x";
 
 interface IconViewProps {
   modalId: string;
@@ -89,6 +91,11 @@ const IconView = ({
           ? `/api/file?path=${encodeURIComponent(item.path)}`
           : null;
 
+        // 提取视频缩略图
+        const { thumbnail: videoThumbnail } = useVideoThumbnail(
+          isVideo ? item.path : "",
+        );
+
         return (
           <FileContextMenu
             key={item.path}
@@ -130,10 +137,20 @@ const IconView = ({
                   <div
                     className={`${iconSize} flex items-center justify-center relative bg-gray-100 rounded`}
                   >
-                    <PlayCircleOutlined
-                      className="text-red-500"
-                      style={{ fontSize: fontSize * 0.8 }}
-                    />
+                    {videoThumbnail ? (
+                      <NextImage
+                        src={videoThumbnail}
+                        alt={item.name}
+                        fill
+                        style={{ objectFit: "cover" }}
+                        unoptimized
+                      />
+                    ) : (
+                      <PlayCircleOutlined
+                        className="text-red-500"
+                        style={{ fontSize: fontSize * 0.8 }}
+                      />
+                    )}
                   </div>
                 ) : isArchive ? (
                   <FileZipOutlined
