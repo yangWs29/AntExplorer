@@ -12,12 +12,9 @@ import {
 } from "@ant-design/icons";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import {
-  copyFiles,
   deleteFiles,
   pasteFiles,
   readDirectory,
-  compressFile,
-  extractArchive,
 } from "@/app/actions/file-actions";
 import { isArchiveFile } from "@/app/utils/file-utils";
 
@@ -33,7 +30,6 @@ export const FileContextMenu = ({
   modalId,
   filePath,
   fileName,
-  isDirectory,
   children,
 }: FileContextMenuProps) => {
   const { message, modal: modalConfirm } = App.useApp();

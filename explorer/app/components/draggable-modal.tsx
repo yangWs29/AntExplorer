@@ -24,7 +24,6 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
     bringToFront,
     goBack,
     canGoBack,
-    navigateToPath,
     setModalLoading,
     setModalFileList,
   } = useModalStore();
