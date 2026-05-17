@@ -80,6 +80,7 @@ export const VideoPreviewProvider = ({
         footer={null}
         width="80vw"
         centered
+        zIndex={10000}
         styles={{
           body: {
             padding: 0,
