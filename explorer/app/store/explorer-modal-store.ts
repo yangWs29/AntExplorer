@@ -78,7 +78,7 @@ interface ExplorerModalStore {
 
 export const useModalStore = create<ExplorerModalStore>((set, get) => ({
   modals: [],
-  nextZIndex: 1000,
+  nextZIndex: 100,
   copiedFiles: [],
   openModal: (title, path) =>
     set((state) => {
@@ -88,7 +88,10 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         type: "explorer",
         title,
         path,
-        position: { x: 100 + state.modals.length * 30, y: 100 + state.modals.length * 30 },
+        position: {
+          x: 100 + state.modals.length * 30,
+          y: 100 + state.modals.length * 30,
+        },
         zIndex: state.nextZIndex,
         history: [path],
         historyIndex: 0,
@@ -110,7 +113,10 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         type: "file-detail",
         title: "文件详情",
         path: fileDetail.path,
-        position: { x: 150 + state.modals.length * 30, y: 150 + state.modals.length * 30 },
+        position: {
+          x: 150 + state.modals.length * 30,
+          y: 150 + state.modals.length * 30,
+        },
         zIndex: state.nextZIndex,
         history: [fileDetail.path],
         historyIndex: 0,
@@ -133,7 +139,10 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         type: "compress",
         title: "压缩文件",
         path: compressData.sourcePath,
-        position: { x: 200 + state.modals.length * 30, y: 200 + state.modals.length * 30 },
+        position: {
+          x: 200 + state.modals.length * 30,
+          y: 200 + state.modals.length * 30,
+        },
         zIndex: state.nextZIndex,
         history: [compressData.sourcePath],
         historyIndex: 0,
@@ -156,7 +165,10 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         type: "extract",
         title: "解压缩文件",
         path: extractData.archivePath,
-        position: { x: 250 + state.modals.length * 30, y: 250 + state.modals.length * 30 },
+        position: {
+          x: 250 + state.modals.length * 30,
+          y: 250 + state.modals.length * 30,
+        },
         zIndex: state.nextZIndex,
         history: [extractData.archivePath],
         historyIndex: 0,
@@ -178,13 +190,13 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
   updatePosition: (id, position) =>
     set((state) => ({
       modals: state.modals.map((modal) =>
-        modal.id === id ? { ...modal, position } : modal
+        modal.id === id ? { ...modal, position } : modal,
       ),
     })),
   bringToFront: (id) =>
     set((state) => ({
       modals: state.modals.map((modal) =>
-        modal.id === id ? { ...modal, zIndex: state.nextZIndex } : modal
+        modal.id === id ? { ...modal, zIndex: state.nextZIndex } : modal,
       ),
       nextZIndex: state.nextZIndex + 1,
     })),
@@ -192,11 +204,11 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
     set((state) => ({
       modals: state.modals.map((modal) => {
         if (modal.id !== id) return modal;
-        
+
         // 截断当前索引之后的历史
         const newHistory = modal.history.slice(0, modal.historyIndex + 1);
         newHistory.push(path);
-        
+
         return {
           ...modal,
           path,
@@ -212,7 +224,7 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
     set((state) => ({
       modals: state.modals.map((modal) => {
         if (modal.id !== id || modal.historyIndex <= 0) return modal;
-        
+
         const newIndex = modal.historyIndex - 1;
         return {
           ...modal,
@@ -230,13 +242,13 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
   setModalFileList: (id, files) =>
     set((state) => ({
       modals: state.modals.map((modal) =>
-        modal.id === id ? { ...modal, fileList: files } : modal
+        modal.id === id ? { ...modal, fileList: files } : modal,
       ),
     })),
   setModalLoading: (id, loading) =>
     set((state) => ({
       modals: state.modals.map((modal) =>
-        modal.id === id ? { ...modal, loading } : modal
+        modal.id === id ? { ...modal, loading } : modal,
       ),
     })),
   getModalById: (id) => {
@@ -245,13 +257,13 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
   setModalViewMode: (id, mode) =>
     set((state) => ({
       modals: state.modals.map((modal) =>
-        modal.id === id ? { ...modal, viewMode: mode } : modal
+        modal.id === id ? { ...modal, viewMode: mode } : modal,
       ),
     })),
   setModalIconColumns: (id, columns) =>
     set((state) => ({
       modals: state.modals.map((modal) =>
-        modal.id === id ? { ...modal, iconColumns: columns } : modal
+        modal.id === id ? { ...modal, iconColumns: columns } : modal,
       ),
     })),
   setCopiedFiles: (files) => set({ copiedFiles: files }),
