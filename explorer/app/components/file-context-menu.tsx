@@ -1,11 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Dropdown,
-  MenuProps,
-  App,
-} from "antd";
+import { Dropdown, MenuProps, App } from "antd";
 import {
   CopyOutlined,
   DeleteOutlined,
@@ -17,6 +13,7 @@ import {
   copyFiles,
   deleteFiles,
   pasteFiles,
+  readDirectory,
 } from "@/app/actions/file-actions";
 
 interface FileContextMenuProps {
@@ -74,7 +71,6 @@ export const FileContextMenu = ({
           await deleteFiles([filePath]);
 
           // 刷新文件列表
-          const { readDirectory } = await import("@/app/actions/file-actions");
           const files = await readDirectory(currentPath);
           setModalFileList(modalId, files);
 
@@ -101,7 +97,6 @@ export const FileContextMenu = ({
       await pasteFiles(copiedFiles, currentPath);
 
       // 刷新文件列表
-      const { readDirectory } = await import("@/app/actions/file-actions");
       const files = await readDirectory(currentPath);
       setModalFileList(modalId, files);
 
@@ -118,7 +113,7 @@ export const FileContextMenu = ({
   // 显示详情
   const handleShowDetails = () => {
     if (!currentFile) return;
-    
+
     openFileDetailModal({
       name: currentFile.name,
       path: currentFile.path,
