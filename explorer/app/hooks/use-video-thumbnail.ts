@@ -5,15 +5,20 @@ import { useEffect, useState } from "react";
 // 全局缓存，避免重复提取
 const thumbnailCache = new Map<string, string>();
 
+// 并发限制：同时最多提取 3 个视频缩略图
+const MAX_CONCURRENT_EXTRACTIONS = 3;
+let currentExtractions = 0;
+const extractionQueue: Array<() => void> = [];
+
 /**
- * 提取视频第一帧作为预览图（带缓存和限流）
+ * 提取视频第一帧作为预览图（带缓存、限流和并发控制）
  */
-export function useVideoThumbnail(videoPath: string) {
+export function useVideoThumbnail(videoPath: string, enabled = true) {
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!videoPath) return;
+    if (!videoPath || !enabled) return;
 
     // 检查缓存
     if (thumbnailCache.has(videoPath)) {
@@ -24,8 +29,19 @@ export function useVideoThumbnail(videoPath: string) {
     let cancelled = false;
     let video: HTMLVideoElement | null = null;
 
-    const extractFrame = async () => {
+    const processExtraction = async () => {
+      // 如果超过并发限制，加入队列
+      if (currentExtractions >= MAX_CONCURRENT_EXTRACTIONS) {
+        return new Promise<void>((resolve) => {
+          extractionQueue.push(() => {
+            processExtraction().then(resolve);
+          });
+        });
+      }
+
+      currentExtractions++;
       setLoading(true);
+
       try {
         // 创建 video 元素
         video = document.createElement("video");
@@ -94,8 +110,15 @@ export function useVideoThumbnail(videoPath: string) {
           setThumbnail(null);
         }
       } finally {
+        currentExtractions--;
         if (!cancelled) {
           setLoading(false);
+        }
+
+        // 处理队列中的下一个任务
+        if (extractionQueue.length > 0) {
+          const next = extractionQueue.shift();
+          if (next) next();
         }
       }
     };
@@ -104,7 +127,7 @@ export function useVideoThumbnail(videoPath: string) {
     const scheduleExtraction = () => {
       if (typeof window !== "undefined" && "requestIdleCallback" in window) {
         const idleCallbackId = (window as any).requestIdleCallback(() => {
-          extractFrame();
+          processExtraction();
         });
         return () => {
           cancelled = true;
@@ -116,7 +139,7 @@ export function useVideoThumbnail(videoPath: string) {
         };
       } else {
         const timeoutId = setTimeout(() => {
-          extractFrame();
+          processExtraction();
         }, 100); // 延迟 100ms 执行
         return () => {
           cancelled = true;
@@ -130,7 +153,7 @@ export function useVideoThumbnail(videoPath: string) {
     };
 
     return scheduleExtraction();
-  }, [videoPath]);
+  }, [videoPath, enabled]);
 
   return { thumbnail, loading };
 }
