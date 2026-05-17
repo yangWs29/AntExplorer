@@ -15,7 +15,11 @@ export default function VideoPlayer({ src, poster }: VideoPlayerProps) {
   return (
     <Player.Provider>
       <VideoSkin poster={poster}>
-        <Video src={src} playsInline />
+        <Video 
+          src={src} 
+          playsInline
+          style={{ maxWidth: "100%", maxHeight: "80vh" }}
+        />
       </VideoSkin>
     </Player.Provider>
   );

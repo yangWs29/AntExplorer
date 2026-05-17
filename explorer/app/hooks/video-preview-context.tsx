@@ -38,7 +38,9 @@ interface VideoPreviewProviderProps {
   children: React.ReactNode;
 }
 
-export const VideoPreviewProvider = ({ children }: VideoPreviewProviderProps) => {
+export const VideoPreviewProvider = ({
+  children,
+}: VideoPreviewProviderProps) => {
   const [currentVideo, setCurrentVideo] = useState<string>("");
   const [currentVideoTitle, setCurrentVideoTitle] = useState<string>("");
   const [videoModalVisible, setVideoModalVisible] = useState(false);
@@ -76,14 +78,19 @@ export const VideoPreviewProvider = ({ children }: VideoPreviewProviderProps) =>
           setCurrentVideo("");
         }}
         footer={null}
-        width={800}
+        width="80vw"
         centered
-        styles={{ body: { padding: 0 } }}
+        styles={{
+          body: {
+            padding: 0,
+            minHeight: "450px",
+            maxHeight: "80vh",
+            overflow: "auto",
+          },
+        }}
         destroyOnHidden
       >
-        <div style={{ minHeight: "450px" }}>
-          {currentVideo && <VideoPlayer key={currentVideo} src={currentVideo} />}
-        </div>
+        {currentVideo && <VideoPlayer key={currentVideo} src={currentVideo} />}
       </Modal>
     </VideoPreviewContext.Provider>
   );
