@@ -10,7 +10,7 @@ export interface FileItem {
 
 export type ViewMode = "list" | "icon";
 
-export type ModalType = "explorer" | "file-detail";
+export type ModalType = "explorer" | "file-detail" | "compress" | "extract";
 
 export interface ModalPosition {
   x: number;
@@ -23,6 +23,16 @@ export interface FileDetailData {
   isDirectory: boolean;
   size?: number;
   modifiedTime?: Date;
+}
+
+export interface CompressData {
+  sourcePath: string; // 要压缩的文件/文件夹路径
+  sourceName: string; // 文件/文件夹名称
+}
+
+export interface ExtractData {
+  archivePath: string; // 压缩包路径
+  archiveName: string; // 压缩包名称
 }
 
 export interface ModalInstance {
@@ -39,6 +49,8 @@ export interface ModalInstance {
   viewMode: ViewMode; // 视图模式
   iconColumns: 1 | 2 | 3 | 4; // 图标模式列数
   fileDetail?: FileDetailData; // 文件详情数据
+  compressData?: CompressData; // 压缩配置数据
+  extractData?: ExtractData; // 解压缩配置数据
 }
 
 interface ExplorerModalStore {
@@ -47,6 +59,8 @@ interface ExplorerModalStore {
   copiedFiles: string[]; // 全局复制的文件列表
   openModal: (title: string, path: string) => void;
   openFileDetailModal: (fileDetail: FileDetailData) => void;
+  openCompressModal: (compressData: CompressData) => void;
+  openExtractModal: (extractData: ExtractData) => void;
   closeModal: (id: string) => void;
   updatePosition: (id: string, position: ModalPosition) => void;
   bringToFront: (id: string) => void;
@@ -105,6 +119,52 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         viewMode: "icon",
         iconColumns: 4,
         fileDetail,
+      };
+      return {
+        modals: [...state.modals, newModal],
+        nextZIndex: state.nextZIndex + 1,
+      };
+    }),
+  openCompressModal: (compressData) =>
+    set((state) => {
+      const id = `compress-${Date.now()}-${Math.random()}`;
+      const newModal: ModalInstance = {
+        id,
+        type: "compress",
+        title: "压缩文件",
+        path: compressData.sourcePath,
+        position: { x: 200 + state.modals.length * 30, y: 200 + state.modals.length * 30 },
+        zIndex: state.nextZIndex,
+        history: [compressData.sourcePath],
+        historyIndex: 0,
+        fileList: [],
+        loading: false,
+        viewMode: "icon",
+        iconColumns: 4,
+        compressData,
+      };
+      return {
+        modals: [...state.modals, newModal],
+        nextZIndex: state.nextZIndex + 1,
+      };
+    }),
+  openExtractModal: (extractData) =>
+    set((state) => {
+      const id = `extract-${Date.now()}-${Math.random()}`;
+      const newModal: ModalInstance = {
+        id,
+        type: "extract",
+        title: "解压缩文件",
+        path: extractData.archivePath,
+        position: { x: 250 + state.modals.length * 30, y: 250 + state.modals.length * 30 },
+        zIndex: state.nextZIndex,
+        history: [extractData.archivePath],
+        historyIndex: 0,
+        fileList: [],
+        loading: false,
+        viewMode: "icon",
+        iconColumns: 4,
+        extractData,
       };
       return {
         modals: [...state.modals, newModal],

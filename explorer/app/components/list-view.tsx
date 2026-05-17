@@ -4,6 +4,7 @@ import {
   FolderOutlined,
   FileOutlined,
   PlayCircleOutlined,
+  FileZipOutlined,
 } from "@ant-design/icons";
 import { Divider } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
@@ -11,6 +12,7 @@ import { isImageFile } from "@/app/hooks/global-image-preview-context";
 import { isVideoFile } from "@/app/hooks/use-video-preview";
 import { useFileItemClick } from "@/app/hooks/use-file-item-click";
 import { useFileItemDrag } from "@/app/hooks/use-file-item-drag";
+import { isArchiveFile } from "@/app/utils/file-utils";
 import NextImage from "next/image";
 import { FileContextMenu } from "./file-context-menu";
 
@@ -43,6 +45,7 @@ const ListView = ({
       {fileList.map((item, index) => {
         const isImage = isImageFile(item.name);
         const isVideo = isVideoFile(item.name);
+        const isArchive = isArchiveFile(item.name);
         const imageUrl = isImage
           ? `/api/file?path=${encodeURIComponent(item.path)}`
           : null;
@@ -78,6 +81,8 @@ const ListView = ({
                   </div>
                 ) : isVideo ? (
                   <PlayCircleOutlined className="text-red-500 text-lg" />
+                ) : isArchive ? (
+                  <FileZipOutlined className="text-orange-500 text-lg" />
                 ) : (
                   <FileOutlined className="text-gray-500 text-lg" />
                 )}

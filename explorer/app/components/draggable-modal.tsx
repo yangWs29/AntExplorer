@@ -10,6 +10,8 @@ import {
 import FileList from "./file-list";
 import ViewModeToggle from "./view-mode-toggle";
 import FileDetailContent from "./file-detail-content";
+import CompressContent from "./compress-content";
+import ExtractContent from "./extract-content";
 
 interface DraggableModalProps {
   modal: ModalInstance;
@@ -119,7 +121,12 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
     left: modal.position.x,
     top: modal.position.y,
     zIndex: modal.zIndex,
-    width: modal.type === "file-detail" ? "500px" : "600px",
+    width:
+      modal.type === "file-detail" ||
+      modal.type === "compress" ||
+      modal.type === "extract"
+        ? "500px"
+        : "600px",
     maxHeight: "70vh",
   };
 
@@ -181,10 +188,14 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
     >
       {modal.type === "explorer" ? (
         <FileList modalId={modal.id} initialPath={modal.path} />
-      ) : (
+      ) : modal.type === "file-detail" ? (
         modal.fileDetail && (
           <FileDetailContent modalId={modal.id} fileDetail={modal.fileDetail} />
         )
+      ) : modal.type === "compress" ? (
+        <CompressContent modalId={modal.id} />
+      ) : (
+        modal.type === "extract" && <ExtractContent modalId={modal.id} />
       )}
     </Card>
   );

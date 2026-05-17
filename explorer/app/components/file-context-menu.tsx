@@ -7,6 +7,8 @@ import {
   DeleteOutlined,
   SnippetsOutlined,
   InfoCircleOutlined,
+  FileZipOutlined,
+  UnorderedListOutlined,
 } from "@ant-design/icons";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import {
@@ -14,7 +16,10 @@ import {
   deleteFiles,
   pasteFiles,
   readDirectory,
+  compressFile,
+  extractArchive,
 } from "@/app/actions/file-actions";
+import { isArchiveFile } from "@/app/utils/file-utils";
 
 interface FileContextMenuProps {
   modalId: string;
@@ -40,6 +45,8 @@ export const FileContextMenu = ({
     setCopiedFiles,
     clearCopiedFiles,
     openFileDetailModal,
+    openCompressModal,
+    openExtractModal,
   } = useModalStore();
 
   const currentModal = getModalById(modalId);
@@ -123,6 +130,26 @@ export const FileContextMenu = ({
     });
   };
 
+  // 压缩文件
+  const handleCompress = () => {
+    if (!filePath || !fileName) return;
+
+    openCompressModal({
+      sourcePath: filePath,
+      sourceName: fileName,
+    });
+  };
+
+  // 解压缩文件
+  const handleExtract = () => {
+    if (!filePath || !fileName) return;
+
+    openExtractModal({
+      archivePath: filePath,
+      archiveName: fileName,
+    });
+  };
+
   // 文件右键菜单
   const fileItems: MenuProps["items"] = [
     {
@@ -137,6 +164,26 @@ export const FileContextMenu = ({
       icon: <InfoCircleOutlined />,
       onClick: handleShowDetails,
     },
+    {
+      type: "divider",
+    },
+    ...(fileName && isArchiveFile(fileName)
+      ? [
+          {
+            key: "extract",
+            label: "解压缩",
+            icon: <UnorderedListOutlined />,
+            onClick: handleExtract,
+          },
+        ]
+      : [
+          {
+            key: "compress",
+            label: "压缩",
+            icon: <FileZipOutlined />,
+            onClick: handleCompress,
+          },
+        ]),
     {
       type: "divider",
     },
