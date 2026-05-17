@@ -16,8 +16,16 @@ interface DraggableModalProps {
 }
 
 const DraggableModal = ({ modal }: DraggableModalProps) => {
-  const { closeModal, updatePosition, bringToFront, goBack, canGoBack } =
-    useModalStore();
+  const {
+    closeModal,
+    updatePosition,
+    bringToFront,
+    goBack,
+    canGoBack,
+    navigateToPath,
+    setModalLoading,
+    setModalFileList,
+  } = useModalStore();
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const modalRef = useRef<HTMLDivElement>(null);
@@ -63,10 +71,45 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
   // 生成面包屑路径
   const breadcrumbItems = modal.history
     .slice(0, modal.historyIndex + 1)
-    .map((path) => {
+    .map((path, index) => {
       const folderName = path.split("/").pop() || path;
+      const isCurrentPath = index === modal.historyIndex;
+
       return {
-        title: folderName,
+        title: isCurrentPath ? (
+          <span className="text-gray-500">{folderName}</span>
+        ) : (
+          <span
+            className="cursor-pointer hover:text-blue-500 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+
+              // 获取该路径对应的文件夹名称
+              const targetFolderName = path.split("/").pop() || path;
+
+              // 更新模态框状态：设置路径和历史索引
+              setModalLoading(modal.id, true);
+              setModalFileList(modal.id, []);
+
+              // 更新 modals 数组中的对应项
+              useModalStore.setState((state) => ({
+                modals: state.modals.map((m) => {
+                  if (m.id !== modal.id) return m;
+                  return {
+                    ...m,
+                    path: path,
+                    title: targetFolderName,
+                    historyIndex: index,
+                    fileList: [],
+                    loading: true,
+                  };
+                }),
+              }));
+            }}
+          >
+            {folderName}
+          </span>
+        ),
         key: path,
       };
     });
@@ -105,7 +148,7 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
           className="cursor-move select-none flex items-center justify-between"
           onMouseDown={handleMouseDown}
         >
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-1 min-w-0 cursor-default">
             {canGoBack(modal.id) && (
               <Button
                 type="text"
