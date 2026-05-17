@@ -10,13 +10,24 @@ export interface FileItem {
 
 export type ViewMode = "list" | "icon";
 
+export type ModalType = "explorer" | "file-detail";
+
 export interface ModalPosition {
   x: number;
   y: number;
 }
 
+export interface FileDetailData {
+  name: string;
+  path: string;
+  isDirectory: boolean;
+  size?: number;
+  modifiedTime?: Date;
+}
+
 export interface ModalInstance {
   id: string;
+  type: ModalType;
   title: string;
   path: string;
   position: ModalPosition;
@@ -27,6 +38,7 @@ export interface ModalInstance {
   loading: boolean; // 加载状态
   viewMode: ViewMode; // 视图模式
   iconColumns: 1 | 2 | 3 | 4; // 图标模式列数
+  fileDetail?: FileDetailData; // 文件详情数据
 }
 
 interface ExplorerModalStore {
@@ -34,6 +46,7 @@ interface ExplorerModalStore {
   nextZIndex: number;
   copiedFiles: string[]; // 全局复制的文件列表
   openModal: (title: string, path: string) => void;
+  openFileDetailModal: (fileDetail: FileDetailData) => void;
   closeModal: (id: string) => void;
   updatePosition: (id: string, position: ModalPosition) => void;
   bringToFront: (id: string) => void;
@@ -58,6 +71,7 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
       const id = `modal-${Date.now()}-${Math.random()}`;
       const newModal: ModalInstance = {
         id,
+        type: "explorer",
         title,
         path,
         position: { x: 100 + state.modals.length * 30, y: 100 + state.modals.length * 30 },
@@ -68,6 +82,29 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         loading: true,
         viewMode: "icon",
         iconColumns: 4,
+      };
+      return {
+        modals: [...state.modals, newModal],
+        nextZIndex: state.nextZIndex + 1,
+      };
+    }),
+  openFileDetailModal: (fileDetail) =>
+    set((state) => {
+      const id = `detail-${Date.now()}-${Math.random()}`;
+      const newModal: ModalInstance = {
+        id,
+        type: "file-detail",
+        title: "文件详情",
+        path: fileDetail.path,
+        position: { x: 150 + state.modals.length * 30, y: 150 + state.modals.length * 30 },
+        zIndex: state.nextZIndex,
+        history: [fileDetail.path],
+        historyIndex: 0,
+        fileList: [],
+        loading: false,
+        viewMode: "icon",
+        iconColumns: 4,
+        fileDetail,
       };
       return {
         modals: [...state.modals, newModal],

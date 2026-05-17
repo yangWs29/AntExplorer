@@ -9,6 +9,7 @@ import {
 } from "@/app/store/explorer-modal-store";
 import FileList from "./file-list";
 import ViewModeToggle from "./view-mode-toggle";
+import FileDetailContent from "./file-detail-content";
 
 interface DraggableModalProps {
   modal: ModalInstance;
@@ -62,10 +63,10 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
   // 生成面包屑路径
   const breadcrumbItems = modal.history
     .slice(0, modal.historyIndex + 1)
-    .map((path, index) => {
+    .map((path) => {
       const folderName = path.split("/").pop() || path;
       return {
-        title: index === 0 ? "Root" : folderName,
+        title: folderName,
         key: path,
       };
     });
@@ -75,7 +76,7 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
     left: modal.position.x,
     top: modal.position.y,
     zIndex: modal.zIndex,
-    width: "600px",
+    width: modal.type === "file-detail" ? "500px" : "600px",
     maxHeight: "70vh",
   };
 
@@ -129,9 +130,19 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
           />
         </div>
       }
-      actions={[<ViewModeToggle key="view-mode" modalId={modal.id} />]}
+      actions={
+        modal.type === "explorer"
+          ? [<ViewModeToggle key="view-mode" modalId={modal.id} />]
+          : undefined
+      }
     >
-      <FileList modalId={modal.id} initialPath={modal.path} />
+      {modal.type === "explorer" ? (
+        <FileList modalId={modal.id} initialPath={modal.path} />
+      ) : (
+        modal.fileDetail && (
+          <FileDetailContent modalId={modal.id} fileDetail={modal.fileDetail} />
+        )
+      )}
     </Card>
   );
 };
