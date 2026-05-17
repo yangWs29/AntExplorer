@@ -1,12 +1,16 @@
 "use client";
 
-import { FolderOutlined, FileOutlined } from "@ant-design/icons";
+import {
+  FolderOutlined,
+  FileOutlined,
+  PlayCircleOutlined,
+} from "@ant-design/icons";
 import { Divider } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
-import {
-  useGlobalImagePreview,
-  isImageFile,
-} from "@/app/hooks/global-image-preview-context";
+import { isImageFile } from "@/app/hooks/global-image-preview-context";
+import { isVideoFile } from "@/app/hooks/use-video-preview";
+import { useFileItemClick } from "@/app/hooks/use-file-item-click";
+import { useFileItemDrag } from "@/app/hooks/use-file-item-drag";
 import NextImage from "next/image";
 import { FileContextMenu } from "./file-context-menu";
 
@@ -24,50 +28,21 @@ const ListView = ({
   onDragEnd,
 }: ListViewProps) => {
   const { getModalById } = useModalStore();
-  const { navigateToPath } = useModalStore();
-  const { openPreview } = useGlobalImagePreview();
 
   const modal = getModalById(modalId);
   const fileList = modal?.fileList || [];
 
-  const handleItemClick = (item: (typeof fileList)[0]) => {
-    if (item.isDirectory) {
-      navigateToPath(modalId, item.path, item.name);
-    } else {
-      if (isImageFile(item.name)) {
-        const imageFiles = fileList.filter((file) => isImageFile(file.name));
-        const items = imageFiles.map((img) => ({
-          src: `/api/file?path=${encodeURIComponent(img.path)}`,
-          alt: img.name,
-        }));
-        const index = imageFiles.findIndex((img) => img.path === item.path);
-        if (index >= 0) {
-          openPreview(
-            items.map((item) => item.src),
-            index,
-          );
-        }
-      } else {
-        console.log("File clicked:", item.name);
-      }
-    }
-  };
-
-  const handleItemDragStart = (e: React.DragEvent, path: string) => {
-    onDragStart([path]);
-    e.dataTransfer.setData(
-      "application/x-explorer-paths",
-      JSON.stringify([path]),
-    );
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const isSelected = (path: string) => draggingFiles.includes(path);
+  const { handleItemClick } = useFileItemClick({ modalId, fileList });
+  const { handleItemDragStart, isSelected } = useFileItemDrag({
+    draggingFiles,
+    onDragStart,
+  });
 
   return (
     <div>
       {fileList.map((item, index) => {
         const isImage = isImageFile(item.name);
+        const isVideo = isVideoFile(item.name);
         const imageUrl = isImage
           ? `/api/file?path=${encodeURIComponent(item.path)}`
           : null;
@@ -101,6 +76,8 @@ const ListView = ({
                       unoptimized
                     />
                   </div>
+                ) : isVideo ? (
+                  <PlayCircleOutlined className="text-red-500 text-lg" />
                 ) : (
                   <FileOutlined className="text-gray-500 text-lg" />
                 )}

@@ -1,31 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import {
   FolderOutlined,
   FileOutlined,
   PlayCircleOutlined,
 } from "@ant-design/icons";
-import { Tooltip, Modal } from "antd";
+import { Tooltip } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
-import {
-  useGlobalImagePreview,
-  isImageFile,
-} from "@/app/hooks/global-image-preview-context";
+import { isImageFile } from "@/app/hooks/global-image-preview-context";
 import { isVideoFile } from "@/app/hooks/use-video-preview";
+import { useFileItemClick } from "@/app/hooks/use-file-item-click";
+import { useFileItemDrag } from "@/app/hooks/use-file-item-drag";
 import NextImage from "next/image";
 import { FileContextMenu } from "./file-context-menu";
-import dynamic from "next/dynamic";
-
-// 动态导入 VideoPlayer 组件，避免 SSR 问题
-const VideoPlayer = dynamic(() => import("./video-player"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-64 flex items-center justify-center">
-      加载中...
-    </div>
-  ),
-});
 
 interface IconViewProps {
   modalId: string;
@@ -41,51 +28,16 @@ const IconView = ({
   onDragEnd,
 }: IconViewProps) => {
   const { getModalById } = useModalStore();
-  const { navigateToPath } = useModalStore();
-  const { openPreview } = useGlobalImagePreview();
-
-  const [videoModalVisible, setVideoModalVisible] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState<string>("");
-  const [currentVideoTitle, setCurrentVideoTitle] = useState<string>("");
 
   const modal = getModalById(modalId);
   const fileList = modal?.fileList || [];
   const iconColumns = modal?.iconColumns || 4;
 
-  const handleItemClick = (item: (typeof fileList)[0]) => {
-    if (item.isDirectory) {
-      navigateToPath(modalId, item.path, item.name);
-    } else if (isImageFile(item.name)) {
-      const imageFiles = fileList.filter((file) => isImageFile(file.name));
-      const items = imageFiles.map(
-        (img) => `/api/file?path=${encodeURIComponent(img.path)}`,
-      );
-      const index = imageFiles.findIndex((img) => img.path === item.path);
-      if (index >= 0) {
-        openPreview(items, index);
-      }
-    } else if (isVideoFile(item.name)) {
-      // 打开视频播放器
-      const videoUrl = `/api/file?path=${encodeURIComponent(item.path)}`;
-      console.log("Opening video:", videoUrl);
-      setCurrentVideo(videoUrl);
-      setCurrentVideoTitle(item.name);
-      setVideoModalVisible(true);
-    } else {
-      console.log("File clicked:", item.name);
-    }
-  };
-
-  const handleItemDragStart = (e: React.DragEvent, path: string) => {
-    onDragStart([path]);
-    e.dataTransfer.setData(
-      "application/x-explorer-paths",
-      JSON.stringify([path]),
-    );
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const isSelected = (path: string) => draggingFiles.includes(path);
+  const { handleItemClick } = useFileItemClick({ modalId, fileList });
+  const { handleItemDragStart, isSelected } = useFileItemDrag({
+    draggingFiles,
+    onDragStart,
+  });
 
   // 根据列数动态计算网格类名
   const gridColsClass = {
@@ -122,111 +74,81 @@ const IconView = ({
   // 所有列数都使用 w-full + aspect-[4/5]，让图片撑满列宽并自动计算高度
   const iconSize = "w-full aspect-[4/5]";
 
-  // 1 列模式使用横向布局，其他模式使用纵向布局
-  const isSingleColumn = iconColumns === 1;
-
   // 所有列数使用统一的字体大小
   const fontSize = 64;
 
   return (
-    <>
-      <div className={`grid ${gridColsClass} gap-4 p-4`}>
-        {fileList.map((item) => {
-          const isImage = isImageFile(item.name);
-          const isVideo = isVideoFile(item.name);
-          const imageUrl = isImage
-            ? `/api/file?path=${encodeURIComponent(item.path)}`
-            : null;
+    <div className={`grid ${gridColsClass} gap-4 p-4`}>
+      {fileList.map((item) => {
+        const isImage = isImageFile(item.name);
+        const isVideo = isVideoFile(item.name);
+        const imageUrl = isImage
+          ? `/api/file?path=${encodeURIComponent(item.path)}`
+          : null;
 
-          return (
-            <FileContextMenu
-              key={item.path}
-              modalId={modalId}
-              filePath={item.path}
-              fileName={item.name}
-              isDirectory={item.isDirectory}
+        return (
+          <FileContextMenu
+            key={item.path}
+            modalId={modalId}
+            filePath={item.path}
+            fileName={item.name}
+            isDirectory={item.isDirectory}
+          >
+            <div
+              className={`flex flex-col items-center p-3 rounded-lg hover:bg-blue-100 cursor-pointer transition-colors duration-200 group h-auto overflow-hidden ${
+                isSelected(item.path) ? "opacity-50" : ""
+              }`}
+              onClick={() => handleItemClick(item)}
+              draggable
+              onDragStart={(e) => handleItemDragStart(e, item.path)}
+              onDragEnd={onDragEnd}
             >
               <div
-                className={`flex flex-col items-center p-3 rounded-lg hover:bg-blue-100 cursor-pointer transition-colors duration-200 group h-auto overflow-hidden ${
-                  isSelected(item.path) ? "opacity-50" : ""
-                }`}
-                onClick={() => handleItemClick(item)}
-                draggable
-                onDragStart={(e) => handleItemDragStart(e, item.path)}
-                onDragEnd={onDragEnd}
+                className={`mb-2 ${iconSize} flex items-center justify-center`}
               >
-                <div
-                  className={`mb-2 ${iconSize} flex items-center justify-center`}
-                >
-                  {item.isDirectory ? (
-                    <FolderOutlined
-                      className="text-blue-500"
-                      style={{ fontSize }}
+                {item.isDirectory ? (
+                  <FolderOutlined
+                    className="text-blue-500"
+                    style={{ fontSize }}
+                  />
+                ) : isImage && imageUrl ? (
+                  <div
+                    className={`${iconSize} flex items-center justify-center relative`}
+                  >
+                    <NextImage
+                      src={imageUrl}
+                      alt={item.name}
+                      fill
+                      style={{ objectFit: "cover" }}
+                      unoptimized
                     />
-                  ) : isImage && imageUrl ? (
-                    <div
-                      className={`${iconSize} flex items-center justify-center relative`}
-                    >
-                      <NextImage
-                        src={imageUrl}
-                        alt={item.name}
-                        fill
-                        style={{ objectFit: "cover" }}
-                        unoptimized
-                      />
-                    </div>
-                  ) : isVideo ? (
-                    <div
-                      className={`${iconSize} flex items-center justify-center relative bg-gray-100 rounded`}
-                    >
-                      <PlayCircleOutlined
-                        className="text-red-500"
-                        style={{ fontSize: fontSize * 0.8 }}
-                      />
-                    </div>
-                  ) : (
-                    <FileOutlined
-                      className="text-gray-500"
-                      style={{ fontSize }}
+                  </div>
+                ) : isVideo ? (
+                  <div
+                    className={`${iconSize} flex items-center justify-center relative bg-gray-100 rounded`}
+                  >
+                    <PlayCircleOutlined
+                      className="text-red-500"
+                      style={{ fontSize: fontSize * 0.8 }}
                     />
-                  )}
-                </div>
-                <Tooltip title={item.name}>
-                  <span className="text-xs text-gray-700 text-center break-all w-full block max-h-[2.2rem] overflow-hidden line-clamp-2">
-                    {formatFileName(item.name)}
-                  </span>
-                </Tooltip>
+                  </div>
+                ) : (
+                  <FileOutlined
+                    className="text-gray-500"
+                    style={{ fontSize }}
+                  />
+                )}
               </div>
-            </FileContextMenu>
-          );
-        })}
-      </div>
-
-      {/* 视频播放模态框 */}
-      <Modal
-        title={currentVideoTitle}
-        open={videoModalVisible}
-        onCancel={() => {
-          setVideoModalVisible(false);
-          setCurrentVideo("");
-          setCurrentVideoTitle("");
-        }}
-        afterClose={() => {
-          setCurrentVideo("");
-        }}
-        footer={null}
-        width={800}
-        centered
-        styles={{ body: { padding: 0 } }}
-        destroyOnHidden
-      >
-        <div style={{ minHeight: "450px" }}>
-          {currentVideo && (
-            <VideoPlayer key={currentVideo} src={currentVideo} />
-          )}
-        </div>
-      </Modal>
-    </>
+              <Tooltip title={item.name}>
+                <span className="text-xs text-gray-700 text-center break-all w-full block max-h-[2.2rem] overflow-hidden line-clamp-2">
+                  {formatFileName(item.name)}
+                </span>
+              </Tooltip>
+            </div>
+          </FileContextMenu>
+        );
+      })}
+    </div>
   );
 };
 
