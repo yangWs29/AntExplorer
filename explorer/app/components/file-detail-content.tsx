@@ -1,13 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, Descriptions, Button, Spin, Tag, List, App } from "antd";
+import { Descriptions, Button, Spin, Tag, List, App } from "antd";
 import {
   CalculatorOutlined,
   LinkOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { useModalStore, FileDetailData } from "@/app/store/explorer-modal-store";
+import {
+  useModalStore,
+  FileDetailData,
+} from "@/app/store/explorer-modal-store";
 import {
   getFolderSize,
   getFileHardLinks,
@@ -22,7 +25,7 @@ interface FileDetailContentProps {
 
 const FileDetailContent = ({ modalId, fileDetail }: FileDetailContentProps) => {
   const { message, modal: modalConfirm } = App.useApp();
-  const { setModalLoading, closeModal } = useModalStore();
+  const { setModalLoading } = useModalStore();
   const [calculating, setCalculating] = useState(false);
   const [folderSize, setFolderSize] = useState<number | undefined>(undefined);
   const [hardLinkInfo, setHardLinkInfo] = useState<{
@@ -122,9 +125,7 @@ const FileDetailContent = ({ modalId, fileDetail }: FileDetailContentProps) => {
   return (
     <div className="p-4">
       <Descriptions column={1} bordered>
-        <Descriptions.Item label="文件名">
-          {fileDetail.name}
-        </Descriptions.Item>
+        <Descriptions.Item label="文件名">{fileDetail.name}</Descriptions.Item>
         <Descriptions.Item label="类型">
           {fileDetail.isDirectory ? "文件夹" : "文件"}
         </Descriptions.Item>
@@ -193,9 +194,7 @@ const FileDetailContent = ({ modalId, fileDetail }: FileDetailContentProps) => {
                 <Spin size="small" />
               ) : (
                 <span>
-                  {folderSize !== undefined
-                    ? formatSize(folderSize)
-                    : "未计算"}
+                  {folderSize !== undefined ? formatSize(folderSize) : "未计算"}
                 </span>
               )}
               <Button
@@ -217,9 +216,7 @@ const FileDetailContent = ({ modalId, fileDetail }: FileDetailContentProps) => {
             : "-"}
         </Descriptions.Item>
         <Descriptions.Item label="路径">
-          <span style={{ wordBreak: "break-all" }}>
-            {fileDetail.path}
-          </span>
+          <span style={{ wordBreak: "break-all" }}>{fileDetail.path}</span>
         </Descriptions.Item>
       </Descriptions>
     </div>
