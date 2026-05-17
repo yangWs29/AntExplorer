@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import { CloseOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { Card, Button, Breadcrumb } from "antd";
 import {
@@ -17,32 +17,36 @@ interface DraggableModalProps {
   modal: ModalInstance;
 }
 
-const DraggableModal = ({ modal }: DraggableModalProps) => {
-  const {
-    closeModal,
-    updatePosition,
-    bringToFront,
-    goBack,
-    canGoBack,
-    setModalLoading,
-    setModalFileList,
-  } = useModalStore();
+const DraggableModal = memo(({ modal }: DraggableModalProps) => {
+  const { closeModal, bringToFront, goBack, canGoBack } = useModalStore();
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  // 使用本地状态管理位置，根据窗口索引计算初始位置
+  const [position, setPosition] = useState(() => {
+    // 获取当前 modal 在列表中的索引
+    const state = useModalStore.getState();
+    const index = state.modals.findIndex((m) => m.id === modal.id);
+    // 每个窗口偏移 30px，最大偏移不超过 200px
+    const offset = Math.min(index * 30, 200);
+    return { x: 100 + offset, y: 100 + offset };
+  });
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!modalRef.current) return;
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (!modalRef.current) return;
 
-    setIsDragging(true);
-    bringToFront(modal.id);
+      setIsDragging(true);
+      bringToFront(modal.id);
 
-    const rect = modalRef.current.getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
-  };
+      const rect = modalRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+    },
+    [modal.id, bringToFront],
+  );
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -51,7 +55,8 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
       const newX = e.clientX - dragOffset.x;
       const newY = e.clientY - dragOffset.y;
 
-      updatePosition(modal.id, { x: newX, y: newY });
+      // 只更新本地状态
+      setPosition({ x: newX, y: newY });
     };
 
     const handleMouseUp = () => {
@@ -59,7 +64,9 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
     };
 
     if (isDragging) {
-      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mousemove", handleMouseMove, {
+        passive: true,
+      });
       document.addEventListener("mouseup", handleMouseUp);
     }
 
@@ -67,12 +74,11 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, dragOffset, modal.id, updatePosition]);
+  }, [isDragging, dragOffset]);
 
-  // 生成面包屑路径
-  const breadcrumbItems = modal.history
-    .slice(0, modal.historyIndex + 1)
-    .map((path, index) => {
+  // 生成面包屑路径（使用 useMemo 缓存）
+  const breadcrumbItems = React.useMemo(() => {
+    return modal.history.slice(0, modal.historyIndex + 1).map((path, index) => {
       const folderName = path.split("/").pop() || path;
       const isCurrentPath = index === modal.historyIndex;
 
@@ -84,28 +90,7 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
             className="cursor-pointer hover:text-blue-500 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-
-              // 获取该路径对应的文件夹名称
-              const targetFolderName = path.split("/").pop() || path;
-
-              // 更新模态框状态：设置路径和历史索引
-              setModalLoading(modal.id, true);
-              setModalFileList(modal.id, []);
-
-              // 更新 modals 数组中的对应项
-              useModalStore.setState((state) => ({
-                modals: state.modals.map((m) => {
-                  if (m.id !== modal.id) return m;
-                  return {
-                    ...m,
-                    path: path,
-                    title: targetFolderName,
-                    historyIndex: index,
-                    fileList: [],
-                    loading: true,
-                  };
-                }),
-              }));
+              goBackToPath(modal.id, path, index);
             }}
           >
             {folderName}
@@ -114,11 +99,32 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
         key: path,
       };
     });
+  }, [modal.history, modal.historyIndex, modal.id]);
+
+  // 优化的面包屑导航函数
+  const goBackToPath = useCallback(
+    (modalId: string, path: string, index: number) => {
+      const targetFolderName = path.split("/").pop() || path;
+
+      useModalStore.setState((state) => ({
+        modals: state.modals.map((m) => {
+          if (m.id !== modalId) return m;
+          return {
+            ...m,
+            path: path,
+            title: targetFolderName,
+            historyIndex: index,
+          };
+        }),
+      }));
+    },
+    [],
+  );
 
   const style: React.CSSProperties = {
     position: "fixed",
-    left: modal.position.x,
-    top: modal.position.y,
+    left: position.x,
+    top: position.y,
     zIndex: modal.zIndex,
     width:
       modal.type === "file-detail" ||
@@ -198,6 +204,6 @@ const DraggableModal = ({ modal }: DraggableModalProps) => {
       )}
     </Card>
   );
-};
+});
 
 export default DraggableModal;

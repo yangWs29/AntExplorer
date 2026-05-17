@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo, useCallback } from "react";
 import { Spin, Empty, App, Dropdown, MenuProps } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
-import { readDirectory } from "@/app/actions/file-actions";
-import { moveFiles, pasteFiles } from "@/app/actions/file-actions";
+import { readDirectory, moveFiles, pasteFiles } from "@/app/actions/file-actions";
 import ListView from "./list-view";
 import IconView from "./icon-view";
 import { SnippetsOutlined } from "@ant-design/icons";
@@ -14,24 +13,30 @@ interface FileListProps {
   initialPath: string;
 }
 
-const FileList = ({ modalId, initialPath }: FileListProps) => {
+const FileList = memo(({ modalId, initialPath }: FileListProps) => {
+  // 使用选择器只订阅需要的状态，避免不必要的重渲染
+  const fileList = useModalStore(
+    (state) => state.modals.find((m) => m.id === modalId)?.fileList || []
+  );
+  const loading = useModalStore(
+    (state) => state.modals.find((m) => m.id === modalId)?.loading || false
+  );
+  const viewMode = useModalStore(
+    (state) => state.modals.find((m) => m.id === modalId)?.viewMode || "icon"
+  );
+  const copiedFiles = useModalStore((state) => state.copiedFiles);
+  
   const {
-    getModalById,
     setModalFileList,
     setModalLoading,
-    copiedFiles,
     clearCopiedFiles,
   } = useModalStore();
+  
   const [draggingFiles, setDraggingFiles] = useState<string[]>([]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const { message } = App.useApp();
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPosRef = useRef<number>(0);
-
-  const modal = getModalById(modalId);
-  const fileList = modal?.fileList || [];
-  const loading = modal?.loading || false;
-  const viewMode = modal?.viewMode || "icon";
 
   useEffect(() => {
     const loadFiles = async () => {
@@ -66,25 +71,25 @@ const FileList = ({ modalId, initialPath }: FileListProps) => {
   }, [fileList]);
 
   // 处理拖拽开始
-  const handleDragStart = (paths: string[]) => {
+  const handleDragStart = useCallback((paths: string[]) => {
     setDraggingFiles(paths);
-  };
+  }, []);
 
   // 处理拖拽结束
-  const handleDragEnd = () => {
+  const handleDragEnd = useCallback(() => {
     setDraggingFiles([]);
-  };
+  }, []);
 
   // 处理拖拽进入
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingOver(true);
-  };
+  }, []);
 
   // 处理拖拽离开
-  const handleDragLeave = () => {
+  const handleDragLeave = useCallback(() => {
     setIsDraggingOver(false);
-  };
+  }, []);
 
   // 处理放置
   const handleDrop = async (e: React.DragEvent) => {
@@ -240,6 +245,6 @@ const FileList = ({ modalId, initialPath }: FileListProps) => {
       </div>
     </Dropdown>
   );
-};
+});
 
 export default FileList;

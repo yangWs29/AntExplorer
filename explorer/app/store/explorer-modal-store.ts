@@ -12,9 +12,21 @@ export type ViewMode = "list" | "icon";
 
 export type ModalType = "explorer" | "file-detail" | "compress" | "extract";
 
-export interface ModalPosition {
-  x: number;
-  y: number;
+export interface ModalInstance {
+  id: string;
+  type: ModalType;
+  title: string;
+  path: string;
+  zIndex: number;
+  history: string[]; // 导航历史
+  historyIndex: number; // 当前历史索引
+  fileList: FileItem[]; // 文件列表
+  loading: boolean; // 加载状态
+  viewMode: ViewMode; // 视图模式
+  iconColumns: 1 | 2 | 3 | 4; // 图标模式列数
+  fileDetail?: FileDetailData; // 文件详情数据
+  compressData?: CompressData; // 压缩配置数据
+  extractData?: ExtractData; // 解压缩配置数据
 }
 
 export interface FileDetailData {
@@ -37,24 +49,6 @@ export interface ExtractData {
   targetDir?: string; // 目标目录（可选）
 }
 
-export interface ModalInstance {
-  id: string;
-  type: ModalType;
-  title: string;
-  path: string;
-  position: ModalPosition;
-  zIndex: number;
-  history: string[]; // 导航历史
-  historyIndex: number; // 当前历史索引
-  fileList: FileItem[]; // 文件列表
-  loading: boolean; // 加载状态
-  viewMode: ViewMode; // 视图模式
-  iconColumns: 1 | 2 | 3 | 4; // 图标模式列数
-  fileDetail?: FileDetailData; // 文件详情数据
-  compressData?: CompressData; // 压缩配置数据
-  extractData?: ExtractData; // 解压缩配置数据
-}
-
 interface ExplorerModalStore {
   modals: ModalInstance[];
   nextZIndex: number;
@@ -64,7 +58,6 @@ interface ExplorerModalStore {
   openCompressModal: (compressData: CompressData) => void;
   openExtractModal: (extractData: ExtractData) => void;
   closeModal: (id: string) => void;
-  updatePosition: (id: string, position: ModalPosition) => void;
   bringToFront: (id: string) => void;
   navigateToPath: (id: string, path: string, title?: string) => void;
   goBack: (id: string) => void;
@@ -90,10 +83,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         type: "explorer",
         title,
         path,
-        position: {
-          x: 100 + state.modals.length * 30,
-          y: 100 + state.modals.length * 30,
-        },
         zIndex: state.nextZIndex,
         history: [path],
         historyIndex: 0,
@@ -115,10 +104,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         type: "file-detail",
         title: "文件详情",
         path: fileDetail.path,
-        position: {
-          x: 150 + state.modals.length * 30,
-          y: 150 + state.modals.length * 30,
-        },
         zIndex: state.nextZIndex,
         history: [fileDetail.path],
         historyIndex: 0,
@@ -141,10 +126,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         type: "compress",
         title: "压缩文件",
         path: compressData.sourcePath,
-        position: {
-          x: 200 + state.modals.length * 30,
-          y: 200 + state.modals.length * 30,
-        },
         zIndex: state.nextZIndex,
         history: [compressData.sourcePath],
         historyIndex: 0,
@@ -167,10 +148,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         type: "extract",
         title: "解压缩文件",
         path: extractData.archivePath,
-        position: {
-          x: 250 + state.modals.length * 30,
-          y: 250 + state.modals.length * 30,
-        },
         zIndex: state.nextZIndex,
         history: [extractData.archivePath],
         historyIndex: 0,
@@ -188,12 +165,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
   closeModal: (id) =>
     set((state) => ({
       modals: state.modals.filter((modal) => modal.id !== id),
-    })),
-  updatePosition: (id, position) =>
-    set((state) => ({
-      modals: state.modals.map((modal) =>
-        modal.id === id ? { ...modal, position } : modal,
-      ),
     })),
   bringToFront: (id) =>
     set((state) => ({
