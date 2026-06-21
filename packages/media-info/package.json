@@ -1,0 +1,23 @@
+{
+  "name": "media-info",
+  "version": "1.0.0",
+  "description": "Node.js wrapper for MediaInfo CLI - extract metadata from media files",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mediainfo",
+    "media",
+    "video",
+    "audio",
+    "metadata"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}

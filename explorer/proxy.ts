@@ -7,7 +7,7 @@ const PROTECTED_PATHS = ["/explorer"];
 // 公开的路径（不需要认证）
 const PUBLIC_PATHS = ["/login", "/api/auth"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 检查是否是公开路径

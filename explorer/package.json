@@ -17,6 +17,7 @@
     "@types/node-7z": "^2.1.11",
     "@videojs/react": "^10.0.0-beta.23",
     "antd": "^6.4.2",
+    "media-info": "workspace:*",
     "next": "16.2.6",
     "next-auth": "^4.24.14",
     "node-7z": "^3.0.0",
@@ -38,6 +39,5 @@
     "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4",
     "typescript": "^5"
-  },
-  "packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538"
+  }
 }

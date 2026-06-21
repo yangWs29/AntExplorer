@@ -2700,6 +2700,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ant-explorer@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "ant-explorer@workspace:."
+  languageName: unknown
+  linkType: soft
+
 "antd@npm:^6.4.2":
   version: 6.4.2
   resolution: "antd@npm:6.4.2"
@@ -4297,9 +4303,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"explorer@workspace:.":
+"explorer@workspace:explorer":
   version: 0.0.0-use.local
-  resolution: "explorer@workspace:."
+  resolution: "explorer@workspace:explorer"
   dependencies:
     7zip-bin-full: "npm:^26.1.0"
     "@ant-design/icons": "npm:^6.2.3"
@@ -4315,6 +4321,7 @@ __metadata:
     antd: "npm:^6.4.2"
     eslint: "npm:^9"
     eslint-config-next: "npm:16.2.6"
+    media-info: "workspace:*"
     next: "npm:16.2.6"
     next-auth: "npm:^4.24.14"
     node-7z: "npm:^3.0.0"
@@ -5628,6 +5635,15 @@ __metadata:
   checksum: 10c0/7579ff94e899e2f76ab64491d76cf606274c874d8f2af4a442c016bd85688927fcfca157ba6bf74b08e9439dc010b248ce05b96cc7c126a354c3bae7fcb48b7f
   languageName: node
   linkType: hard
+
+"media-info@workspace:*, media-info@workspace:packages/media-info":
+  version: 0.0.0-use.local
+  resolution: "media-info@workspace:packages/media-info"
+  dependencies:
+    "@types/node": "npm:^20"
+    typescript: "npm:^5"
+  languageName: unknown
+  linkType: soft
 
 "merge2@npm:^1.3.0":
   version: 1.4.1
