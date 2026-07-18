@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { useModalStore } from "@/app/store/explorer-modal-store";
-import DraggableModal from "./draggable-modal";
+import DraggableModal from "./DraggableModal";
 
 const ModalContainer = memo(() => {
   // 只订阅 modals 数组，避免不必要的重渲染

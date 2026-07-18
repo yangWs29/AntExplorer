@@ -3,7 +3,7 @@
 import { FolderOutlined, SettingOutlined } from "@ant-design/icons";
 import { Card } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
-import ModalContainer from "@/app/components/modal-container";
+import ModalContainer from "@/app/components/ModalContainer";
 
 const Explorer = () => {
   const { openModal } = useModalStore();

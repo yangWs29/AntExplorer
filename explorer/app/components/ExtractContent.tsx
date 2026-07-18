@@ -5,7 +5,7 @@ import { Form, Input, Button, App } from "antd";
 import type { TextAreaRef } from "antd/es/input/TextArea";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import { extractArchive, readDirectory } from "@/app/actions/file-actions";
-import DirectoryTreeSelector from "./directory-tree-selector";
+import DirectoryTreeSelector from "./DirectoryTreeSelector";
 import { getDisplayPath, getFullPath } from "@/app/utils/file-utils";
 
 const { TextArea } = Input;

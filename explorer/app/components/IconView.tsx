@@ -15,8 +15,7 @@ import { useFileItemDrag } from "@/app/hooks/use-file-item-drag";
 import { useVideoThumbnail } from "@/app/hooks/use-video-thumbnail";
 import { isArchiveFile } from "@/app/utils/file-utils";
 import NextImage from "next/image";
-import { FileContextMenu } from "./file-context-menu";
-import { FileCard } from "@ant-design/x";
+import { FileContextMenu } from "./FileContextMenu";
 
 interface IconViewProps {
   modalId: string;
@@ -129,8 +128,8 @@ const IconView = ({
                       src={imageUrl}
                       alt={item.name}
                       fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
                       style={{ objectFit: "cover" }}
-                      unoptimized
                     />
                   </div>
                 ) : isVideo ? (

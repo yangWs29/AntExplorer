@@ -4,7 +4,7 @@ import React from "react";
 import { Form, Input, Select, Button, App } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import { compressFile, readDirectory } from "@/app/actions/file-actions";
-import DirectoryTreeSelector from "./directory-tree-selector";
+import DirectoryTreeSelector from "./DirectoryTreeSelector";
 import { getDisplayPath, getFullPath } from "@/app/utils/file-utils";
 
 interface CompressContentProps {

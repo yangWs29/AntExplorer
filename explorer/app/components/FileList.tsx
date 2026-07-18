@@ -4,8 +4,8 @@ import { useEffect, useState, useRef, memo, useCallback } from "react";
 import { Spin, Empty, App, Dropdown, MenuProps } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import { readDirectory, moveFiles, pasteFiles } from "@/app/actions/file-actions";
-import ListView from "./list-view";
-import IconView from "./icon-view";
+import ListView from "./ListView";
+import IconView from "./IconView";
 import { SnippetsOutlined } from "@ant-design/icons";
 
 interface FileListProps {

@@ -7,11 +7,11 @@ import {
   useModalStore,
   type ModalInstance,
 } from "@/app/store/explorer-modal-store";
-import FileList from "./file-list";
-import ViewModeToggle from "./view-mode-toggle";
-import FileDetailContent from "./file-detail-content";
-import CompressContent from "./compress-content";
-import ExtractContent from "./extract-content";
+import FileList from "./FileList";
+import ViewModeToggle from "./ViewModeToggle";
+import FileDetailContent from "./FileDetailContent";
+import CompressContent from "./CompressContent";
+import ExtractContent from "./ExtractContent";
 
 interface DraggableModalProps {
   modal: ModalInstance;
@@ -149,7 +149,6 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
         header: {
           cursor: "move",
           userSelect: "none",
-          padding: "12px 16px",
         },
         actions: {
           padding: "0px 16px",

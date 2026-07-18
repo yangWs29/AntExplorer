@@ -5,7 +5,7 @@ import { Modal } from "antd";
 import dynamic from "next/dynamic";
 
 // 动态导入 VideoPlayer 组件，避免 SSR 问题
-const VideoPlayer = dynamic(() => import("../components/video-player"), {
+const VideoPlayer = dynamic(() => import("../components/VideoPlayer"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-64 flex items-center justify-center">

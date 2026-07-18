@@ -14,7 +14,7 @@ import { useFileItemClick } from "@/app/hooks/use-file-item-click";
 import { useFileItemDrag } from "@/app/hooks/use-file-item-drag";
 import { isArchiveFile } from "@/app/utils/file-utils";
 import NextImage from "next/image";
-import { FileContextMenu } from "./file-context-menu";
+import { FileContextMenu } from "./FileContextMenu";
 
 interface ListViewProps {
   modalId: string;
