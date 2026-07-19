@@ -16,7 +16,6 @@ FROM base AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/explorer/node_modules ./explorer/node_modules
 COPY . .
 
 RUN corepack enable && corepack install && yarn workspace explorer build
