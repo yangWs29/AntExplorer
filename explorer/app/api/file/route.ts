@@ -45,10 +45,49 @@ export async function GET(request: NextRequest) {
     const range = request.headers.get("range");
 
     if (range && contentType.startsWith("video/")) {
-      // 解析 Range 头
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      // 解析 Range 头，支持三种格式：
+      // 1. bytes=start-end  (指定范围)
+      // 2. bytes=start-     (从 start 到末尾)
+      // 3. bytes=-suffix    (最后 suffix 字节)
+      const rangeValue = range.replace(/bytes=/, "");
+      const parts = rangeValue.split("-");
+      const startPart = parts[0];
+      const endPart = parts[1];
+
+      let start: number;
+      let end: number;
+
+      if (!startPart && endPart) {
+        // 后缀范围：bytes=-500 表示最后 500 字节
+        const suffixLength = parseInt(endPart, 10);
+        start = Math.max(0, fileSize - suffixLength);
+        end = fileSize - 1;
+      } else if (startPart && !endPart) {
+        // 开放范围：bytes=100- 表示从 100 到末尾
+        start = parseInt(startPart, 10);
+        end = fileSize - 1;
+      } else if (startPart && endPart) {
+        // 完整范围：bytes=100-200
+        start = parseInt(startPart, 10);
+        end = parseInt(endPart, 10);
+      } else {
+        // 无效 Range，返回完整文件
+        start = 0;
+        end = fileSize - 1;
+      }
+
+      // 边界校验
+      if (isNaN(start) || isNaN(end) || start < 0 || end < 0 || start >= fileSize || end >= fileSize) {
+        return new NextResponse(null, {
+          status: 416,
+          headers: {
+            "Content-Range": `bytes */${fileSize}`,
+          },
+        });
+      }
+
+      // 确保 end 不超过文件大小
+      end = Math.min(end, fileSize - 1);
       const chunksize = end - start + 1;
 
       // 使用 createReadStream 流式读取指定范围，避免将整个文件加载到内存
