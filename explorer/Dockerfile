@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 # ---- 依赖安装阶段 ----
 FROM base AS deps
@@ -9,7 +9,7 @@ COPY package.json yarn.lock .yarnrc.yml ./
 COPY explorer/package.json ./explorer/
 COPY packages/media-info/package.json ./packages/media-info/
 
-RUN corepack enable && yarn install --immutable
+RUN corepack enable && corepack install && yarn install --immutable
 
 # ---- 构建阶段 ----
 FROM base AS builder
@@ -19,7 +19,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/explorer/node_modules ./explorer/node_modules
 COPY . .
 
-RUN corepack enable && yarn workspace explorer build
+RUN corepack enable && corepack install && yarn workspace explorer build
 
 # ---- 运行阶段 ----
 FROM base AS runner
@@ -28,9 +28,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 RUN apk add --no-cache mediainfo
-
-RUN addgroup --system --gid 100 nodejs
-RUN adduser --system --uid 1000 nextjs
 
 # standalone 产物
 COPY --from=builder /app/explorer/.next/standalone ./
@@ -42,12 +39,12 @@ COPY --from=builder /app/explorer/public ./explorer/public
 # 通过环境变量指定数据根目录，Docker 中挂载 volume 到该路径
 ENV NEXT_PUBLIC_DATA_DIR=/app/data
 RUN mkdir -p /app/data/config /app/data/cache/tmdb
-# 复制默认 TMDB 配置文件（如果 volume 未挂载则使用默认值）
-COPY --from=builder /app/explorer/config/tmdb.json /app/data/config/tmdb.json
-RUN chown -R 1000:100 /app/data && chown -R nextjs:nodejs /app/data
+# 创建默认 TMDB 配置文件（如果 volume 未挂载则使用默认值）
+RUN echo '{"language": "zh-CN","baseUrl": "https://api.themoviedb.org/3"}' > /app/data/config/tmdb.json
+RUN chown -R node:node /app/data
 VOLUME ["/app/data"]
 
-USER nextjs
+USER node
 
 EXPOSE 3000
 
