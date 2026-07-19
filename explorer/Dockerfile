@@ -6,7 +6,6 @@ WORKDIR /app
 
 # 复制 monorepo 根配置和依赖声明
 COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn ./.yarn
 COPY explorer/package.json ./explorer/
 COPY packages/media-info/package.json ./packages/media-info/
 
