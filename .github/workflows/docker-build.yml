@@ -26,8 +26,8 @@ jobs:
         with:
           images: registry.cn-hangzhou.aliyuncs.com/${{ secrets.ACR_NAMESPACE }}/explorer
           tags: |
-            type=sha,prefix=
             type=ref,event=tag
+            type=raw,value=latest
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
