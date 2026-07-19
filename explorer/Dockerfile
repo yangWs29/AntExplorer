@@ -45,7 +45,7 @@ ENV NEXT_PUBLIC_DATA_DIR=/app/data
 RUN mkdir -p /app/data/config /app/data/cache/tmdb
 # 复制默认 TMDB 配置文件（如果 volume 未挂载则使用默认值）
 COPY --from=builder /app/explorer/config/tmdb.json /app/data/config/tmdb.json
-RUN chown=1000:100 /app/data && chown -R nextjs:nodejs /app/data
+RUN chown -R 1000:100 /app/data && chown -R nextjs:nodejs /app/data
 VOLUME ["/app/data"]
 
 USER nextjs
