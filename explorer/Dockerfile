@@ -39,6 +39,15 @@ COPY --from=builder /app/explorer/.next/standalone ./
 COPY --from=builder /app/explorer/.next/static ./explorer/.next/static
 COPY --from=builder /app/explorer/public ./explorer/public
 
+# 持久化数据目录（config + cache）
+# 通过环境变量指定数据根目录，Docker 中挂载 volume 到该路径
+ENV NEXT_PUBLIC_DATA_DIR=/app/data
+RUN mkdir -p /app/data/config /app/data/cache/tmdb
+# 复制默认 TMDB 配置文件（如果 volume 未挂载则使用默认值）
+COPY --from=builder /app/explorer/config/tmdb.json /app/data/config/tmdb.json
+RUN chown=1000:100 /app/data && chown -R nextjs:nodejs /app/data
+VOLUME ["/app/data"]
+
 USER nextjs
 
 EXPOSE 3000

@@ -9,6 +9,7 @@ import {
   InfoCircleOutlined,
   FileZipOutlined,
   UnorderedListOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import {
@@ -16,7 +17,7 @@ import {
   pasteFiles,
   readDirectory,
 } from "@/app/actions/file-actions";
-import { isArchiveFile } from "@/app/utils/file-utils";
+import { isArchiveFile, isVideoFile } from "@/app/utils/file-utils";
 
 interface FileContextMenuProps {
   modalId: string;
@@ -30,6 +31,7 @@ export const FileContextMenu = ({
   modalId,
   filePath,
   fileName,
+  isDirectory,
   children,
 }: FileContextMenuProps) => {
   const { message, modal: modalConfirm } = App.useApp();
@@ -43,6 +45,7 @@ export const FileContextMenu = ({
     openFileDetailModal,
     openCompressModal,
     openExtractModal,
+    openAnalyzeModal,
   } = useModalStore();
 
   const currentModal = getModalById(modalId);
@@ -146,51 +149,73 @@ export const FileContextMenu = ({
     });
   };
 
-  // 文件右键菜单
-  const fileItems: MenuProps["items"] = [
-    {
-      key: "copy",
-      label: "复制",
-      icon: <CopyOutlined />,
-      onClick: handleCopy,
-    },
-    {
-      key: "details",
-      label: "显示详情",
-      icon: <InfoCircleOutlined />,
-      onClick: handleShowDetails,
-    },
-    {
-      type: "divider",
-    },
-    ...(fileName && isArchiveFile(fileName)
-      ? [
-          {
-            key: "extract",
-            label: "解压缩",
-            icon: <UnorderedListOutlined />,
-            onClick: handleExtract,
-          },
-        ]
-      : [
-          {
-            key: "compress",
-            label: "压缩",
-            icon: <FileZipOutlined />,
-            onClick: handleCompress,
-          },
-        ]),
-    {
-      type: "divider",
-    },
-    {
-      key: "delete",
-      label: "删除",
-      icon: <DeleteOutlined />,
-      danger: true,
-      onClick: handleDelete,
-    },
-  ];
+  // 分析视频
+  const handleAnalyze = () => {
+    if (!filePath || !fileName) return;
+
+    openAnalyzeModal({
+      fileName,
+      filePath,
+    });
+  };
+
+  // 文件右键菜单（仅文件显示，文件夹不显示右键菜单）
+  const fileItems: MenuProps["items"] = isDirectory
+    ? []
+    : [
+        {
+          key: "copy",
+          label: "复制",
+          icon: <CopyOutlined />,
+          onClick: handleCopy,
+        },
+        {
+          key: "details",
+          label: "显示详情",
+          icon: <InfoCircleOutlined />,
+          onClick: handleShowDetails,
+        },
+        ...(fileName && isVideoFile(fileName)
+          ? [
+              {
+                key: "analyze",
+                label: "识别",
+                icon: <BarChartOutlined />,
+                onClick: handleAnalyze,
+              },
+            ]
+          : []),
+        {
+          type: "divider",
+        },
+        ...(fileName && isArchiveFile(fileName)
+          ? [
+              {
+                key: "extract",
+                label: "解压缩",
+                icon: <UnorderedListOutlined />,
+                onClick: handleExtract,
+              },
+            ]
+          : [
+              {
+                key: "compress",
+                label: "压缩",
+                icon: <FileZipOutlined />,
+                onClick: handleCompress,
+              },
+            ]),
+        {
+          type: "divider",
+        },
+        {
+          key: "delete",
+          label: "删除",
+          icon: <DeleteOutlined />,
+          danger: true,
+          onClick: handleDelete,
+        },
+      ];
 
   // 空白处右键菜单
   const emptyItems: MenuProps["items"] = [
@@ -202,6 +227,11 @@ export const FileContextMenu = ({
       onClick: handlePaste,
     },
   ];
+
+  // 文件夹不显示右键菜单，直接渲染子元素
+  if (isDirectory) {
+    return <>{children}</>;
+  }
 
   const menuItems = filePath ? fileItems : emptyItems;
 

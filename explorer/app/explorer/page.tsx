@@ -1,12 +1,17 @@
 "use client";
 
-import { FolderOutlined, SettingOutlined } from "@ant-design/icons";
-import { Card } from "antd";
+import {
+  FolderOutlined,
+  SettingOutlined,
+  DatabaseOutlined,
+} from "@ant-design/icons";
+import { Card, theme } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import ModalContainer from "@/app/components/ModalContainer";
+import { Content } from "antd/es/layout/layout";
 
 const Explorer = () => {
-  const { openModal } = useModalStore();
+  const { openModal, openMediaManagementModal, openSystemModal } = useModalStore();
 
   const items = [
     {
@@ -14,7 +19,7 @@ const Explorer = () => {
       icon: <SettingOutlined style={{ fontSize: 48 }} />,
       label: "System",
       onClick: () => {
-        console.log("System clicked");
+        openSystemModal();
       },
     },
     {
@@ -25,10 +30,24 @@ const Explorer = () => {
         openModal("Explorer", process.env.NEXT_PUBLIC_DIR || "/");
       },
     },
+    {
+      id: "media-management",
+      icon: <DatabaseOutlined style={{ fontSize: 48 }} />,
+      label: "媒体管理",
+      onClick: () => {
+        openMediaManagementModal({
+          rootDir: process.env.NEXT_PUBLIC_DIR || "/",
+        });
+      },
+    },
   ];
 
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+
   return (
-    <>
+    <Content style={{ background: colorBgContainer }}>
       <div className="min-h-screen p-4">
         <div className="flex flex-col gap-6 w-fit">
           {items.map((item) => (
@@ -45,7 +64,7 @@ const Explorer = () => {
         </div>
       </div>
       <ModalContainer />
-    </>
+    </Content>
   );
 };
 

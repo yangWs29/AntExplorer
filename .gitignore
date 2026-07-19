@@ -49,3 +49,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# TMDB 配置（含敏感 API Key）和缓存
+explorer/config/tmdb.json
+explorer/cache/

@@ -10,7 +10,7 @@ export interface FileItem {
 
 export type ViewMode = "list" | "icon";
 
-export type ModalType = "explorer" | "file-detail" | "compress" | "extract";
+export type ModalType = "explorer" | "file-detail" | "compress" | "extract" | "analyze" | "batch-analyze" | "media-management" | "system";
 
 export interface ModalInstance {
   id: string;
@@ -27,6 +27,9 @@ export interface ModalInstance {
   fileDetail?: FileDetailData; // 文件详情数据
   compressData?: CompressData; // 压缩配置数据
   extractData?: ExtractData; // 解压缩配置数据
+  analyzeData?: AnalyzeData; // 视频分析数据
+  batchAnalyzeData?: BatchAnalyzeData; // 批量媒体管理数据
+  mediaManagementData?: MediaManagementData; // 媒体管理数据
 }
 
 export interface FileDetailData {
@@ -49,6 +52,20 @@ export interface ExtractData {
   targetDir?: string; // 目标目录（可选）
 }
 
+export interface AnalyzeData {
+  fileName: string; // 文件名
+  filePath: string; // 文件路径
+}
+
+export interface BatchAnalyzeData {
+  dirPath: string; // 目录路径
+  dirName: string; // 目录名称
+}
+
+export interface MediaManagementData {
+  rootDir: string; // 根目录
+}
+
 interface ExplorerModalStore {
   modals: ModalInstance[];
   nextZIndex: number;
@@ -57,6 +74,10 @@ interface ExplorerModalStore {
   openFileDetailModal: (fileDetail: FileDetailData) => void;
   openCompressModal: (compressData: CompressData) => void;
   openExtractModal: (extractData: ExtractData) => void;
+  openAnalyzeModal: (analyzeData: AnalyzeData) => void;
+  openBatchAnalyzeModal: (batchAnalyzeData: BatchAnalyzeData) => void;
+  openMediaManagementModal: (mediaManagementData: MediaManagementData) => void;
+  openSystemModal: () => void;
   closeModal: (id: string) => void;
   bringToFront: (id: string) => void;
   navigateToPath: (id: string, path: string, title?: string) => void;
@@ -156,6 +177,93 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         viewMode: "icon",
         iconColumns: 4,
         extractData,
+      };
+      return {
+        modals: [...state.modals, newModal],
+        nextZIndex: state.nextZIndex + 1,
+      };
+    }),
+  openAnalyzeModal: (analyzeData) =>
+    set((state) => {
+      const id = `analyze-${Date.now()}-${Math.random()}`;
+      const newModal: ModalInstance = {
+        id,
+        type: "analyze",
+        title: "视频分析",
+        path: analyzeData.filePath,
+        zIndex: state.nextZIndex,
+        history: [analyzeData.filePath],
+        historyIndex: 0,
+        fileList: [],
+        loading: false,
+        viewMode: "icon",
+        iconColumns: 4,
+        analyzeData,
+      };
+      return {
+        modals: [...state.modals, newModal],
+        nextZIndex: state.nextZIndex + 1,
+      };
+    }),
+  openBatchAnalyzeModal: (batchAnalyzeData) =>
+    set((state) => {
+      const id = `batch-analyze-${Date.now()}-${Math.random()}`;
+      const newModal: ModalInstance = {
+        id,
+        type: "batch-analyze",
+        title: "批量媒体管理",
+        path: batchAnalyzeData.dirPath,
+        zIndex: state.nextZIndex,
+        history: [batchAnalyzeData.dirPath],
+        historyIndex: 0,
+        fileList: [],
+        loading: false,
+        viewMode: "icon",
+        iconColumns: 4,
+        batchAnalyzeData,
+      };
+      return {
+        modals: [...state.modals, newModal],
+        nextZIndex: state.nextZIndex + 1,
+      };
+    }),
+  openMediaManagementModal: (mediaManagementData) =>
+    set((state) => {
+      const id = `media-management-${Date.now()}-${Math.random()}`;
+      const newModal: ModalInstance = {
+        id,
+        type: "media-management",
+        title: "媒体管理",
+        path: mediaManagementData.rootDir,
+        zIndex: state.nextZIndex,
+        history: [mediaManagementData.rootDir],
+        historyIndex: 0,
+        fileList: [],
+        loading: false,
+        viewMode: "icon",
+        iconColumns: 4,
+        mediaManagementData,
+      };
+      return {
+        modals: [...state.modals, newModal],
+        nextZIndex: state.nextZIndex + 1,
+      };
+    }),
+  openSystemModal: () =>
+    set((state) => {
+      const id = `system-${Date.now()}-${Math.random()}`;
+      const newModal: ModalInstance = {
+        id,
+        type: "system",
+        title: "系统设置",
+        path: "",
+        zIndex: state.nextZIndex,
+        history: [""],
+        historyIndex: 0,
+        fileList: [],
+        loading: false,
+        viewMode: "icon",
+        iconColumns: 4,
       };
       return {
         modals: [...state.modals, newModal],

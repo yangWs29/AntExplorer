@@ -1,0 +1,35 @@
+# IDE
+.idea
+.vscode
+
+# Git
+.git
+.github
+
+# Node modules（构建时会重新安装）
+node_modules
+explorer/node_modules
+packages/*/node_modules
+
+# 缓存和运行时数据
+explorer/cache
+explorer/.next
+explorer/out
+
+# Docker 相关
+docker-compose.yml
+**/Dockerfile
+**/.dockerignore
+
+# 环境文件
+.env*
+explorer/.env.local
+
+# 测试
+coverage
+
+# 杂项
+.DS_Store
+*.md
+*.pem
+.vercel

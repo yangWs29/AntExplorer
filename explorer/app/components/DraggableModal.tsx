@@ -12,6 +12,10 @@ import ViewModeToggle from "./ViewModeToggle";
 import FileDetailContent from "./FileDetailContent";
 import CompressContent from "./CompressContent";
 import ExtractContent from "./ExtractContent";
+import AnalyzeContent from "./AnalyzeContent";
+import BatchAnalyzeContent from "./BatchAnalyzeContent";
+import MediaManagementContent from "./MediaManagementContent";
+import SystemContent from "./SystemContent";
 
 interface DraggableModalProps {
   modal: ModalInstance;
@@ -127,11 +131,17 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
     top: position.y,
     zIndex: modal.zIndex,
     width:
-      modal.type === "file-detail" ||
-      modal.type === "compress" ||
-      modal.type === "extract"
-        ? "500px"
-        : "600px",
+      (
+        {
+          "file-detail": "500px",
+          compress: "500px",
+          extract: "500px",
+          analyze: "560px",
+          "batch-analyze": "560px",
+          "media-management": "900px",
+          system: "520px",
+        } as Record<string, string>
+      )[modal.type] ?? "600px",
     maxHeight: "70vh",
   };
 
@@ -160,18 +170,24 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
           onMouseDown={handleMouseDown}
         >
           <div className="flex items-center gap-2 flex-1 min-w-0 cursor-default">
-            {canGoBack(modal.id) && (
-              <Button
-                type="text"
-                size="small"
-                icon={<ArrowLeftOutlined />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goBack(modal.id);
-                }}
-              />
+            {modal.type === "explorer" ? (
+              <>
+                {canGoBack(modal.id) && (
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<ArrowLeftOutlined />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goBack(modal.id);
+                    }}
+                  />
+                )}
+                <Breadcrumb items={breadcrumbItems} className="flex-1" />
+              </>
+            ) : (
+              <span className="flex-1 truncate">{modal.title}</span>
             )}
-            <Breadcrumb items={breadcrumbItems} className="flex-1" />
           </div>
           <Button
             type="text"
@@ -198,9 +214,17 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
         )
       ) : modal.type === "compress" ? (
         <CompressContent modalId={modal.id} />
-      ) : (
-        modal.type === "extract" && <ExtractContent modalId={modal.id} />
-      )}
+      ) : modal.type === "extract" ? (
+        <ExtractContent modalId={modal.id} />
+      ) : modal.type === "analyze" ? (
+        <AnalyzeContent modalId={modal.id} />
+      ) : modal.type === "batch-analyze" ? (
+        <BatchAnalyzeContent modalId={modal.id} />
+      ) : modal.type === "media-management" ? (
+        <MediaManagementContent modalId={modal.id} />
+      ) : modal.type === "system" ? (
+        <SystemContent modalId={modal.id} />
+      ) : null}
     </Card>
   );
 });

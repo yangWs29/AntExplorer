@@ -1,6 +1,6 @@
 "use server";
 
-import { readdir, stat, rename, copyFile, rm } from "fs/promises";
+import { readdir, stat, rename, copyFile, rm, link, mkdir } from "fs/promises";
 import { join, basename, extname } from "path";
 import { FileItem } from "@/app/store/explorer-modal-store";
 import Seven from "node-7z";
@@ -317,4 +317,113 @@ export async function getSubDirectories(
     console.error("Error reading subdirectories:", error);
     return [];
   }
+}
+
+// 媒体库硬链接基础路径
+const MEDIA_LIBRARY_DIR = process.env.MEDIA_LIBRARY_DIR || "/media";
+
+// 媒体库硬链接整理
+export async function hardLinkToLibraryAction(
+  sourcePath: string,
+  targetDir: string,
+  newFileName: string,
+): Promise<{ success: boolean; targetPath: string }> {
+  try {
+    // 确保目标目录存在
+    await mkdir(targetDir, { recursive: true });
+
+    const targetPath = join(targetDir, newFileName);
+
+    // 创建硬链接
+    await link(sourcePath, targetPath);
+
+    return { success: true, targetPath };
+  } catch (error) {
+    console.error("硬链接创建失败:", error);
+    throw error;
+  }
+}
+
+// 获取媒体库基础路径
+export async function getMediaLibraryBaseDirAction(): Promise<string> {
+  return MEDIA_LIBRARY_DIR;
+}
+
+// 视频文件扩展名
+const VIDEO_EXTENSIONS = new Set([
+  ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts", ".rmvb", ".rm",
+]);
+
+// 扫描目录下的所有视频文件（递归）
+export async function scanDirectoryMediaAction(
+  dirPath: string,
+): Promise<{ name: string; path: string }[]> {
+  try {
+    const results: { name: string; path: string }[] = [];
+
+    async function scan(dir: string) {
+      const entries = await readdir(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          await scan(fullPath);
+        } else {
+          const ext = extname(entry.name).toLowerCase();
+          if (VIDEO_EXTENSIONS.has(ext)) {
+            results.push({ name: entry.name, path: fullPath });
+          }
+        }
+      }
+    }
+
+    await scan(dirPath);
+    // 按文件名排序
+    results.sort((a, b) => a.name.localeCompare(b.name));
+    return results;
+  } catch (error) {
+    console.error("扫描目录失败:", error);
+    throw error;
+  }
+}
+
+// 重命名文件
+export async function renameFileAction(
+  filePath: string,
+  newName: string,
+): Promise<{ success: boolean; newPath: string }> {
+  try {
+    const dir = filePath.substring(0, filePath.lastIndexOf("/"));
+    const newPath = join(dir, newName);
+    await rename(filePath, newPath);
+    return { success: true, newPath };
+  } catch (error) {
+    console.error("重命名失败:", error);
+    throw error;
+  }
+}
+
+// 批量硬链接
+export async function batchHardLinkAction(
+  files: { sourcePath: string; targetDir: string; newFileName: string }[],
+): Promise<{ success: boolean; results: { source: string; target: string; success: boolean; error?: string }[] }> {
+  const results: { source: string; target: string; success: boolean; error?: string }[] = [];
+
+  for (const file of files) {
+    try {
+      await mkdir(file.targetDir, { recursive: true });
+      const targetPath = join(file.targetDir, file.newFileName);
+      await link(file.sourcePath, targetPath);
+      results.push({ source: file.sourcePath, target: targetPath, success: true });
+    } catch (error) {
+      results.push({
+        source: file.sourcePath,
+        target: "",
+        success: false,
+        error: error instanceof Error ? error.message : "未知错误",
+      });
+    }
+  }
+
+  const allSuccess = results.every((r) => r.success);
+  return { success: allSuccess, results };
 }

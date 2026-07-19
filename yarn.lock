@@ -4321,6 +4321,7 @@ __metadata:
     antd: "npm:^6.4.2"
     eslint: "npm:^9"
     eslint-config-next: "npm:16.2.6"
+    guessit-js: "npm:^4.0.0"
     media-info: "workspace:*"
     next: "npm:16.2.6"
     next-auth: "npm:^4.24.14"
@@ -4619,6 +4620,15 @@ __metadata:
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10c0/386d011a553e02bc594ac2ca0bd6d9e4c22d7fa8cfbfc448a6d148c59ea881b092db9dbe3547ae4b88e55f1b01f7c4a2ecc53b310c042793e63aa44cf6c257f2
+  languageName: node
+  linkType: hard
+
+"guessit-js@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "guessit-js@npm:4.0.0"
+  dependencies:
+    rebulk-js: "npm:^3.3.1"
+  checksum: 10c0/d4d74860efa58c92e12f81137009a6999bf665b5b3c7050138ac57fcfaf3da08cb2bce99a2ce32066de7ec82d3faade545e72f9845e56d76b16b30a9d37e4f36
   languageName: node
   linkType: hard
 
@@ -6426,6 +6436,13 @@ __metadata:
   version: 19.2.4
   resolution: "react@npm:19.2.4"
   checksum: 10c0/cd2c9ff67a720799cc3b38a516009986f7fc4cb8d3e15716c6211cf098d1357ee3e348ab05ad0600042bbb0fd888530ba92e329198c92eafa0994f5213396596
+  languageName: node
+  linkType: hard
+
+"rebulk-js@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "rebulk-js@npm:3.3.1"
+  checksum: 10c0/6ff3bdd3e4cb3a80f86fc57edd81d31cbef8a5205d066202f01bac259cffc57d24a39dbe787d065ee72306d2261de8c927e53348eb3fdcd391a68212d91a8729
   languageName: node
   linkType: hard
 
