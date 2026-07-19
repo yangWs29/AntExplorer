@@ -118,3 +118,13 @@ export function getFullPath(displayPath: string, rootDir: string): string {
   }
   return rootDir + "/" + displayPath;
 }
+
+/**
+ * 将文件系统绝对路径转换为 /file/ URL 路径
+ * @param filePath - 文件系统绝对路径，如 /data/movies/file.mp4
+ * @returns URL 路径，如 /file/data/movies/file.mp4
+ */
+export function toFileUrl(filePath: string): string {
+  const segments = filePath.split("/").filter(Boolean);
+  return "/file/" + segments.map(encodeURIComponent).join("/");
+}

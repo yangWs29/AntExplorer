@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toFileUrl } from "@/app/utils/file-utils";
 
 // 全局缓存，避免重复提取
 const thumbnailCache = new Map<string, string>();
@@ -48,8 +49,8 @@ export function useVideoThumbnail(videoPath: string, enabled = true) {
         video.crossOrigin = "anonymous";
 
         // 浏览器会自动使用 Range 请求获取视频元数据和第一帧
-        // API 已支持 Range 请求，只会传输必要的数据（通常 < 1MB）
-        video.src = `/api/file?path=${encodeURIComponent(videoPath)}`;
+        // /file/ 路由已支持 Range 请求，只会传输必要的数据（通常 < 1MB）
+        video.src = toFileUrl(videoPath);
         video.muted = true;
 
         // 设置 preload 为 metadata，只加载元数据

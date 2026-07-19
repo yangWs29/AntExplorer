@@ -13,7 +13,7 @@ import { isVideoFile } from "@/app/hooks/use-video-preview";
 import { useFileItemClick } from "@/app/hooks/use-file-item-click";
 import { useFileItemDrag } from "@/app/hooks/use-file-item-drag";
 import { useVideoThumbnail } from "@/app/hooks/use-video-thumbnail";
-import { isArchiveFile } from "@/app/utils/file-utils";
+import { isArchiveFile, toFileUrl } from "@/app/utils/file-utils";
 import NextImage from "next/image";
 import { FileContextMenu } from "./FileContextMenu";
 
@@ -87,7 +87,7 @@ const IconView = ({
         const isVideo = isVideoFile(item.name);
         const isArchive = isArchiveFile(item.name);
         const imageUrl = isImage
-          ? `/api/file?path=${encodeURIComponent(item.path)}`
+          ? toFileUrl(item.path)
           : null;
 
         // 提取视频缩略图

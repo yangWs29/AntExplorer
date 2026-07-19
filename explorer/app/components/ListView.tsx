@@ -12,7 +12,7 @@ import { isImageFile } from "@/app/hooks/global-image-preview-context";
 import { isVideoFile } from "@/app/hooks/use-video-preview";
 import { useFileItemClick } from "@/app/hooks/use-file-item-click";
 import { useFileItemDrag } from "@/app/hooks/use-file-item-drag";
-import { isArchiveFile } from "@/app/utils/file-utils";
+import { isArchiveFile, toFileUrl } from "@/app/utils/file-utils";
 import NextImage from "next/image";
 import { FileContextMenu } from "./FileContextMenu";
 
@@ -47,7 +47,7 @@ const ListView = ({
         const isVideo = isVideoFile(item.name);
         const isArchive = isArchiveFile(item.name);
         const imageUrl = isImage
-          ? `/api/file?path=${encodeURIComponent(item.path)}`
+          ? toFileUrl(item.path)
           : null;
 
         return (

@@ -3,9 +3,16 @@ import { stat } from "fs/promises";
 import { createReadStream } from "fs";
 import { Readable } from "stream";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const filePath = searchParams.get("path");
+/**
+ * 文件路由 —— 生产环境由 nginx 直接返回，不经过 Next.js
+ * 支持静态文件（图片等）和视频流式播放（Range 请求）
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> },
+) {
+  const { path: segments } = await params;
+  const filePath = "/" + segments.map(decodeURIComponent).join("/");
 
   if (!filePath) {
     return new NextResponse("Missing file path", { status: 400 });
@@ -18,6 +25,7 @@ export async function GET(request: NextRequest) {
     // 根据文件扩展名设置 MIME 类型
     const extension = filePath.split(".").pop()?.toLowerCase();
     const mimeTypes: Record<string, string> = {
+      // 图片格式
       jpg: "image/jpeg",
       jpeg: "image/jpeg",
       png: "image/png",
@@ -77,7 +85,14 @@ export async function GET(request: NextRequest) {
       }
 
       // 边界校验
-      if (isNaN(start) || isNaN(end) || start < 0 || end < 0 || start >= fileSize || end >= fileSize) {
+      if (
+        isNaN(start) ||
+        isNaN(end) ||
+        start < 0 ||
+        end < 0 ||
+        start >= fileSize ||
+        end >= fileSize
+      ) {
         return new NextResponse(null, {
           status: 416,
           headers: {

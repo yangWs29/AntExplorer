@@ -5,6 +5,7 @@ import { useModalStore, FileItem } from "@/app/store/explorer-modal-store";
 import { useGlobalImagePreview, isImageFile } from "./global-image-preview-context";
 import { isVideoFile } from "./use-video-preview";
 import { useVideoPreview } from "./video-preview-context";
+import { toFileUrl } from "@/app/utils/file-utils";
 
 interface UseFileItemClickProps {
   modalId: string;
@@ -23,7 +24,7 @@ export const useFileItemClick = ({ modalId, fileList }: UseFileItemClickProps) =
       } else if (isImageFile(item.name)) {
         const imageFiles = fileList.filter((file) => isImageFile(file.name));
         const items = imageFiles.map(
-          (img) => `/api/file?path=${encodeURIComponent(img.path)}`,
+          (img) => toFileUrl(img.path),
         );
         const index = imageFiles.findIndex((img) => img.path === item.path);
         if (index >= 0) {
@@ -31,7 +32,7 @@ export const useFileItemClick = ({ modalId, fileList }: UseFileItemClickProps) =
         }
       } else if (isVideoFile(item.name)) {
         // 打开视频播放器
-        const videoUrl = `/api/file?path=${encodeURIComponent(item.path)}`;
+        const videoUrl = toFileUrl(item.path);
         openVideoPreview(videoUrl, item.name);
       } else {
         console.log("File clicked:", item.name);
