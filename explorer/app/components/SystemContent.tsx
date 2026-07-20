@@ -162,7 +162,7 @@ const SystemContent = ({ modalId }: SystemContentProps) => {
   }
 
   return (
-    <div style={{ padding: 24, maxHeight: "calc(70vh - 140px)", overflowY: "auto" }}>
+    <div style={{ padding: 24, flex: 1, minHeight: 0, overflowY: "auto" }}>
       <Typography.Title level={5}>TMDB 配置</Typography.Title>
       <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 16 }}>
         配置 TMDB API 相关参数，用于媒体信息识别与匹配

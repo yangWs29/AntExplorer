@@ -228,7 +228,7 @@ const FileList = memo(({ modalId, initialPath }: FileListProps) => {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`h-[calc(70vh-180px)] overflow-y-auto transition-colors ${
+        className={`flex-1 min-h-0 overflow-y-auto transition-colors ${
           isDraggingOver ? "bg-blue-50" : ""
         }`}
       >

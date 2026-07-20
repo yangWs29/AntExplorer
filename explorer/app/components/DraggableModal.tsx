@@ -209,8 +209,8 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
 
   const bodyMaxHeight =
     windowSize === "fullscreen" || windowSize === "half-width"
-      ? "calc(100vh - 140px)"
-      : "calc(70vh - 140px)";
+      ? "calc(100vh - 40px)"
+      : "calc(70vh - 40px)";
 
   return (
     <Card
@@ -221,8 +221,10 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
       styles={{
         body: {
           padding: 0,
-          maxHeight: bodyMaxHeight,
-          overflow: "auto",
+          height: bodyMaxHeight,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         },
         header: {
           cursor: "move",

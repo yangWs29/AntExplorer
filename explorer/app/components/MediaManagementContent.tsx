@@ -456,9 +456,12 @@ const MediaManagementContent = ({ modalId }: MediaManagementContentProps) => {
   } = theme.useToken();
 
   return (
-    <Layout className="mt-1" style={{ height: "calc(70vh - 140px)" }}>
+    <Layout
+      className="mt-1"
+      style={{ flex: 1, minHeight: 0, overflow: "hidden" }}
+    >
       {/* 上部：左右分栏 */}
-      <Layout style={{ flex: 1, overflow: "hidden" }}>
+      <Layout style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
         {/* 左侧：上下分区 */}
         <Sider
           width={280}
@@ -649,12 +652,14 @@ const MediaManagementContent = ({ modalId }: MediaManagementContentProps) => {
       {/* 底部 */}
       <Footer
         style={{
+          flex: "none",
           padding: "4px 16px",
           borderTop: `1px solid ${colorSplit}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           background: colorBgContainer,
+          flexShrink: 0,
         }}
       >
         <Button
@@ -675,9 +680,7 @@ const MediaManagementContent = ({ modalId }: MediaManagementContentProps) => {
             const crumbs: { title: React.ReactNode; path: string }[] = [
               { title: <HomeOutlined />, path: rootDir },
             ];
-            let accumulated = rootDir.endsWith("/")
-              ? rootDir
-              : rootDir + "/";
+            let accumulated = rootDir.endsWith("/") ? rootDir : rootDir + "/";
             for (const seg of segments) {
               accumulated += seg + "/";
               crumbs.push({ title: seg, path: accumulated });
@@ -686,9 +689,7 @@ const MediaManagementContent = ({ modalId }: MediaManagementContentProps) => {
               title:
                 idx < crumbs.length - 1 ? (
                   <a
-                    onClick={() =>
-                      setSelectedDir(item.path.replace(/\/$/, ""))
-                    }
+                    onClick={() => setSelectedDir(item.path.replace(/\/$/, ""))}
                   >
                     {item.title}
                   </a>

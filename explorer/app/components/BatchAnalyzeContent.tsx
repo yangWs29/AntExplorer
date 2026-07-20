@@ -381,7 +381,7 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
   return (
     <div
       className="p-4"
-      style={{ maxHeight: "calc(70vh - 140px)", overflowY: "auto" }}
+      style={{ flex: 1, minHeight: 0, overflowY: "auto" }}
     >
       {/* 目录信息 */}
       <div className="mb-4">
