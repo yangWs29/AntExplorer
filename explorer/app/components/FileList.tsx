@@ -3,7 +3,11 @@
 import { useEffect, useState, useRef, memo, useCallback } from "react";
 import { Spin, Empty, App, Dropdown, MenuProps } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
-import { readDirectory, moveFiles, pasteFiles } from "@/app/actions/file-actions";
+import {
+  readDirectory,
+  moveFiles,
+  pasteFiles,
+} from "@/app/actions/file-actions";
 import ListView from "./ListView";
 import IconView from "./IconView";
 import { SnippetsOutlined } from "@ant-design/icons";
@@ -16,22 +20,19 @@ interface FileListProps {
 const FileList = memo(({ modalId, initialPath }: FileListProps) => {
   // 使用选择器只订阅需要的状态，避免不必要的重渲染
   const fileList = useModalStore(
-    (state) => state.modals.find((m) => m.id === modalId)?.fileList || []
+    (state) => state.modals.find((m) => m.id === modalId)?.fileList || [],
   );
   const loading = useModalStore(
-    (state) => state.modals.find((m) => m.id === modalId)?.loading || false
+    (state) => state.modals.find((m) => m.id === modalId)?.loading || false,
   );
   const viewMode = useModalStore(
-    (state) => state.modals.find((m) => m.id === modalId)?.viewMode || "icon"
+    (state) => state.modals.find((m) => m.id === modalId)?.viewMode || "icon",
   );
   const copiedFiles = useModalStore((state) => state.copiedFiles);
-  
-  const {
-    setModalFileList,
-    setModalLoading,
-    clearCopiedFiles,
-  } = useModalStore();
-  
+
+  const { setModalFileList, setModalLoading, clearCopiedFiles } =
+    useModalStore();
+
   const [draggingFiles, setDraggingFiles] = useState<string[]>([]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const { message } = App.useApp();
@@ -221,7 +222,7 @@ const FileList = memo(({ modalId, initialPath }: FileListProps) => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`min-h-50 max-h-[calc(70vh-180px)] overflow-y-auto transition-colors ${
+          className={`h-[calc(70vh-180px)] overflow-y-auto transition-colors ${
             isDraggingOver ? "bg-blue-50" : ""
           }`}
         >
