@@ -209,8 +209,8 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
 
   const bodyMaxHeight =
     windowSize === "fullscreen" || windowSize === "half-width"
-      ? "calc(100vh - 40px)"
-      : "calc(70vh - 40px)";
+      ? "calc(100vh - 90px)"
+      : "calc(70vh - 90px)";
 
   return (
     <Card
