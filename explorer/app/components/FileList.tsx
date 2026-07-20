@@ -11,6 +11,7 @@ import {
 import ListView from "./ListView";
 import IconView from "./IconView";
 import { SnippetsOutlined } from "@ant-design/icons";
+import { useEventListener } from "ahooks";
 
 interface FileListProps {
   modalId: string;
@@ -39,13 +40,19 @@ const FileList = memo(({ modalId, initialPath }: FileListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPosRef = useRef<number>(0);
 
-  useEffect(() => {
-    const loadFiles = async () => {
+  useEventListener(
+    "scroll",
+    () => {
       // 保存当前滚动位置
       if (scrollRef.current) {
         scrollPosRef.current = scrollRef.current.scrollTop;
       }
+    },
+    { target: scrollRef },
+  );
 
+  useEffect(() => {
+    const loadFiles = async () => {
       setModalLoading(modalId, true);
       try {
         const files = await readDirectory(initialPath);
@@ -216,33 +223,31 @@ const FileList = memo(({ modalId, initialPath }: FileListProps) => {
 
   return (
     <Dropdown menu={{ items: emptyMenuItems }} trigger={["contextMenu"]}>
-      <div>
-        <div
-          ref={scrollRef}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          className={`h-[calc(70vh-180px)] overflow-y-auto transition-colors ${
-            isDraggingOver ? "bg-blue-50" : ""
-          }`}
-        >
-          {/* File List */}
-          {viewMode === "list" ? (
-            <ListView
-              modalId={modalId}
-              draggingFiles={draggingFiles}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            />
-          ) : (
-            <IconView
-              modalId={modalId}
-              draggingFiles={draggingFiles}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            />
-          )}
-        </div>
+      <div
+        ref={scrollRef}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`h-[calc(70vh-180px)] overflow-y-auto transition-colors ${
+          isDraggingOver ? "bg-blue-50" : ""
+        }`}
+      >
+        {/* File List */}
+        {viewMode === "list" ? (
+          <ListView
+            modalId={modalId}
+            draggingFiles={draggingFiles}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          />
+        ) : (
+          <IconView
+            modalId={modalId}
+            draggingFiles={draggingFiles}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          />
+        )}
       </div>
     </Dropdown>
   );
