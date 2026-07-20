@@ -471,36 +471,34 @@ const MediaManagementContent = ({ modalId }: MediaManagementContentProps) => {
             display: "flex",
             flexDirection: "column",
             background: colorBgContainer,
+            flex: 1,
           }}
         >
           {/* 左侧：目录树 */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* 目录树 */}
-            <div className="flex-1 overflow-y-auto" style={{ padding: 8 }}>
-              <Spin spinning={treeLoading}>
-                <Tree
-                  treeData={treeData}
-                  loadData={onLoadData}
-                  selectedKeys={[selectedDir]}
-                  onSelect={(keys) => {
-                    if (keys.length > 0) {
-                      setSelectedDir(keys[0] as string);
-                    }
-                  }}
-                  defaultExpandAll={false}
-                  showLine
-                  switcherIcon={({ expanded }) =>
-                    expanded ? <FolderOpenOutlined /> : <FolderOutlined />
+          <div className="flex-1 h-full overflow-y-auto" style={{ padding: 8 }}>
+            <Spin spinning={treeLoading}>
+              <Tree
+                treeData={treeData}
+                loadData={onLoadData}
+                selectedKeys={[selectedDir]}
+                onSelect={(keys) => {
+                  if (keys.length > 0) {
+                    setSelectedDir(keys[0] as string);
                   }
-                  styles={{
-                    root: {
-                      fontSize: 13,
-                      background: "transparent",
-                    },
-                  }}
-                />
-              </Spin>
-            </div>
+                }}
+                defaultExpandAll={false}
+                showLine
+                switcherIcon={({ expanded }) =>
+                  expanded ? <FolderOpenOutlined /> : <FolderOutlined />
+                }
+                styles={{
+                  root: {
+                    fontSize: 13,
+                    background: "transparent",
+                  },
+                }}
+              />
+            </Spin>
           </div>
         </Sider>
 
