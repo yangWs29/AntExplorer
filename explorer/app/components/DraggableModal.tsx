@@ -1,8 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
-import { CloseOutlined, ArrowLeftOutlined } from "@ant-design/icons";
-import { Card, Button, Breadcrumb } from "antd";
+import {
+  CloseOutlined,
+  ArrowLeftOutlined,
+  ExpandOutlined,
+  ColumnWidthOutlined,
+  MinusSquareOutlined,
+} from "@ant-design/icons";
+import { Card, Button, Breadcrumb, Dropdown } from "antd";
+import type { MenuProps } from "antd";
 import {
   useModalStore,
   type ModalInstance,
@@ -21,13 +28,21 @@ interface DraggableModalProps {
   modal: ModalInstance;
 }
 
+type WindowSize = "default" | "fullscreen" | "half-width";
+
 const DraggableModal = memo(({ modal }: DraggableModalProps) => {
   const { closeModal, bringToFront, goBack, canGoBack } = useModalStore();
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [windowSize, setWindowSize] = useState<WindowSize>("default");
+  const [defaultPosition] = useState(() => {
+    const state = useModalStore.getState();
+    const index = state.modals.findIndex((m) => m.id === modal.id);
+    const offset = Math.min(index * 30, 200);
+    return { x: 100 + offset, y: 100 + offset };
+  });
   // 使用本地状态管理位置，根据窗口索引计算初始位置
   const [position, setPosition] = useState(() => {
-    // 获取当前 modal 在列表中的索引
     const state = useModalStore.getState();
     const index = state.modals.findIndex((m) => m.id === modal.id);
     // 每个窗口偏移 30px，最大偏移不超过 200px
@@ -125,25 +140,77 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
     [],
   );
 
+  // 窗口大小切换菜单
+  const windowSizeMenu: MenuProps["items"] = [
+    {
+      key: "fullscreen",
+      icon: <ExpandOutlined />,
+      label: "全屏",
+      onClick: () => {
+        setWindowSize("fullscreen");
+        setPosition({ x: 0, y: 0 });
+      },
+    },
+    {
+      key: "half-width",
+      icon: <ColumnWidthOutlined />,
+      label: "高度 100%，宽度 50%",
+      onClick: () => {
+        setWindowSize("half-width");
+        setPosition({ x: Math.round(window.innerWidth / 4), y: 0 });
+      },
+    },
+    { type: "divider" },
+    {
+      key: "default",
+      icon: <MinusSquareOutlined />,
+      label: "恢复默认",
+      onClick: () => {
+        setWindowSize("default");
+        setPosition(defaultPosition);
+      },
+    },
+  ];
+
+  const defaultWidth =
+    (
+      {
+        "file-detail": "500px",
+        compress: "500px",
+        extract: "500px",
+        analyze: "560px",
+        "batch-analyze": "560px",
+        "media-management": "900px",
+        system: "520px",
+      } as Record<string, string>
+    )[modal.type] ?? "600px";
+
   const style: React.CSSProperties = {
     position: "fixed",
     left: position.x,
     top: position.y,
     zIndex: modal.zIndex,
     width:
-      (
-        {
-          "file-detail": "500px",
-          compress: "500px",
-          extract: "500px",
-          analyze: "560px",
-          "batch-analyze": "560px",
-          "media-management": "900px",
-          system: "520px",
-        } as Record<string, string>
-      )[modal.type] ?? "600px",
-    maxHeight: "70vh",
+      windowSize === "fullscreen"
+        ? "100vw"
+        : windowSize === "half-width"
+          ? "50vw"
+          : defaultWidth,
+    height:
+      windowSize === "fullscreen" || windowSize === "half-width"
+        ? "100vh"
+        : undefined,
+    maxHeight:
+      windowSize === "fullscreen" || windowSize === "half-width"
+        ? undefined
+        : "70vh",
+    margin: 0,
   };
+
+  const bodyMaxHeight =
+    windowSize === "fullscreen" || windowSize === "half-width"
+      ? "calc(100vh - 140px)"
+      : "calc(70vh - 140px)";
 
   return (
     <Card
@@ -154,7 +221,8 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
       styles={{
         body: {
           padding: 0,
-          maxHeight: "calc(70vh - 140px)",
+          maxHeight: bodyMaxHeight,
+          overflow: "auto",
         },
         header: {
           cursor: "move",
@@ -189,15 +257,37 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
               <span className="flex-1 truncate">{modal.title}</span>
             )}
           </div>
-          <Button
-            type="text"
-            size="small"
-            icon={<CloseOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              closeModal(modal.id);
-            }}
-          />
+          <div className="flex items-center gap-0.5">
+            <Dropdown
+              menu={{ items: windowSizeMenu }}
+              trigger={["click"]}
+              placement="bottomRight"
+            >
+              <Button
+                type="text"
+                size="small"
+                icon={
+                  windowSize === "fullscreen" ? (
+                    <ExpandOutlined />
+                  ) : windowSize === "half-width" ? (
+                    <ColumnWidthOutlined />
+                  ) : (
+                    <MinusSquareOutlined />
+                  )
+                }
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Dropdown>
+            <Button
+              type="text"
+              size="small"
+              icon={<CloseOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                closeModal(modal.id);
+              }}
+            />
+          </div>
         </div>
       }
       actions={
