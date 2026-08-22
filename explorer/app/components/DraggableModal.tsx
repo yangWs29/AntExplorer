@@ -404,7 +404,7 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
       ) : modal.type === "media-management" ? (
         <MediaManagementContent modalId={modal.id} />
       ) : modal.type === "system" ? (
-        <SystemContent modalId={modal.id} />
+        <SystemContent />
       ) : modal.type === "finder" ? (
         <FinderContent modalId={modal.id} />
       ) : null}
