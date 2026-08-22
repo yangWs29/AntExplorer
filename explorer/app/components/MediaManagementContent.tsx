@@ -293,6 +293,11 @@ const MediaManagementContent = ({ modalId }: MediaManagementContentProps) => {
 
       // 计算目标路径
       const baseDir = await getMediaLibraryBaseDirAction();
+      const config = await getTmdbConfigAction();
+      const prefixPath = (config.mediaPrefixPath || "").replace(/\/+$/, "");
+      const effectiveBaseDir = prefixPath
+        ? `${prefixPath}${baseDir.startsWith("/") ? "" : "/"}${baseDir}`
+        : baseDir;
       const seasonNumber = parsed.season
         ? parseInt(parsed.season, 10)
         : undefined;
@@ -325,7 +330,7 @@ const MediaManagementContent = ({ modalId }: MediaManagementContentProps) => {
       const target = computeTargetPath(
         (first.media_type || mediaType) as "movie" | "tv",
         info,
-        baseDir,
+        effectiveBaseDir,
         seasonNumber,
         techInfo,
       );

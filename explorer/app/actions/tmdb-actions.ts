@@ -8,6 +8,7 @@ interface TmdbConfig {
   apiKey: string;
   language: string;
   baseUrl: string;
+  mediaPrefixPath: string;
 }
 
 // TMDB 搜索结果类型
@@ -65,6 +66,7 @@ const DEFAULT_CONFIG: TmdbConfig = {
   apiKey: "",
   language: "zh-CN",
   baseUrl: "https://api.themoviedb.org/3",
+  mediaPrefixPath: "",
 };
 
 // 读取 TMDB 配置
@@ -89,12 +91,14 @@ export async function getTmdbConfigAction(): Promise<{
   apiKey: string;
   language: string;
   baseUrl: string;
+  mediaPrefixPath: string;
 }> {
   const config = await getTmdbConfig();
   return {
     apiKey: config.apiKey,
     language: config.language,
     baseUrl: config.baseUrl,
+    mediaPrefixPath: config.mediaPrefixPath,
   };
 }
 
@@ -110,6 +114,7 @@ export async function saveTmdbConfigAction(config: {
   apiKey: string;
   language: string;
   baseUrl: string;
+  mediaPrefixPath: string;
 }): Promise<void> {
   await saveTmdbConfig(config);
 }

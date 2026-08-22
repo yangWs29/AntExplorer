@@ -259,6 +259,11 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
     if (!currentMediaType) return;
 
     const baseDir = await getMediaLibraryBaseDirAction();
+    const config = await getTmdbConfigAction();
+    const prefixPath = (config.mediaPrefixPath || "").replace(/\/+$/, "");
+    const effectiveBaseDir = prefixPath
+      ? `${prefixPath}${baseDir.startsWith("/") ? "" : "/"}${baseDir}`
+      : baseDir;
 
     const info: MediaClassifyInfo = {
       title: detail.title,
@@ -318,7 +323,7 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
         const { targetDir } = computeTargetPath(
           currentMediaType,
           info,
-          baseDir,
+          effectiveBaseDir,
           fileSeason,
           techInfo,
         );
@@ -333,7 +338,7 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
         const { targetDir } = computeTargetPath(
           currentMediaType,
           info,
-          baseDir,
+          effectiveBaseDir,
           undefined,
           techInfo,
         );

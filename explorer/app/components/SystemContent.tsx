@@ -22,6 +22,7 @@ import {
   DeleteOutlined,
   ClearOutlined,
 } from "@ant-design/icons";
+import DirectoryTreeSelector from "@/app/components/DirectoryTreeSelector";
 import {
   getTmdbConfigAction,
   saveTmdbConfigAction,
@@ -41,6 +42,7 @@ interface TmdbConfigForm {
   apiKey: string;
   language: string;
   baseUrl: string;
+  mediaPrefixPath: string;
 }
 
 const SystemContent = ({ modalId }: SystemContentProps) => {
@@ -164,7 +166,10 @@ const SystemContent = ({ modalId }: SystemContentProps) => {
   return (
     <div style={{ padding: 24, flex: 1, minHeight: 0, overflowY: "auto" }}>
       <Typography.Title level={5}>TMDB 配置</Typography.Title>
-      <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 16 }}>
+      <Text
+        type="secondary"
+        style={{ fontSize: 12, display: "block", marginBottom: 16 }}
+      >
         配置 TMDB API 相关参数，用于媒体信息识别与匹配
       </Text>
 
@@ -221,6 +226,14 @@ const SystemContent = ({ modalId }: SystemContentProps) => {
           <Input placeholder="https://api.themoviedb.org/3" />
         </Form.Item>
 
+        <Form.Item
+          label="媒体库前置路径"
+          name="mediaPrefixPath"
+          extra="媒体管理转移硬链接时，拼接在目标路径前的前置路径，如 /mnt/media"
+        >
+          <DirectoryTreeSelector placeholder="点击选择前置目录" useFullPath />
+        </Form.Item>
+
         <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
           <div style={{ display: "flex", gap: 8 }}>
             <Button
@@ -250,7 +263,14 @@ const SystemContent = ({ modalId }: SystemContentProps) => {
         width={640}
         destroyOnHidden
       >
-        <div style={{ marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div
+          style={{
+            marginBottom: 12,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Text type="secondary" style={{ fontSize: 12 }}>
             共 {cacheList.length} 个缓存文件
           </Text>
@@ -262,12 +282,7 @@ const SystemContent = ({ modalId }: SystemContentProps) => {
               cancelText="取消"
               okButtonProps={{ danger: true }}
             >
-              <Button
-                type="text"
-                danger
-                size="small"
-                icon={<ClearOutlined />}
-              >
+              <Button type="text" danger size="small" icon={<ClearOutlined />}>
                 清空全部
               </Button>
             </Popconfirm>
@@ -307,7 +322,9 @@ const SystemContent = ({ modalId }: SystemContentProps) => {
               >
                 <List.Item.Meta
                   title={
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
                       <Tag
                         color={
                           item.type === "search"

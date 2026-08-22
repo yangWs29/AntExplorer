@@ -11,6 +11,8 @@ interface DirectoryTreeSelectorProps {
   onChange?: (value: string) => void;
   placeholder?: string;
   rootDir?: string;
+  /** 是否使用完整路径（不做相对路径转换），默认 false */
+  useFullPath?: boolean;
 }
 
 const DirectoryTreeSelector = ({
@@ -18,6 +20,7 @@ const DirectoryTreeSelector = ({
   onChange,
   placeholder = "点击选择目录",
   rootDir = process.env.NEXT_PUBLIC_DIR || "/",
+  useFullPath = false,
 }: DirectoryTreeSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
@@ -110,9 +113,13 @@ const DirectoryTreeSelector = ({
 
   const handleSelect = (selectedKeys: React.Key[]) => {
     if (selectedKeys.length > 0) {
-      const path = selectedKeys[0] as string;
-      const displayPath = getDisplayPath(path);
-      onChange?.(displayPath);
+      const fullPath = selectedKeys[0] as string;
+      if (useFullPath) {
+        onChange?.(fullPath);
+      } else {
+        const displayPath = getDisplayPath(fullPath);
+        onChange?.(displayPath);
+      }
       setOpen(false);
     }
   };
