@@ -34,10 +34,6 @@ import {
 
 const { Text } = Typography;
 
-interface SystemContentProps {
-  modalId: string;
-}
-
 interface TmdbConfigForm {
   apiKey: string;
   language: string;
