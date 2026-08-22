@@ -125,7 +125,9 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
   const [organizeOpen, setOrganizeOpen] = useState(false);
   const [organizeLoading, setOrganizeLoading] = useState(false);
   const [targets, setTargets] = useState<HardLinkTarget[]>([]);
-  const [category, setCategory] = useState<MediaCategory | TvSubCategory>("其他");
+  const [category, setCategory] = useState<MediaCategory | TvSubCategory>(
+    "其他",
+  );
 
   // 扫描目录
   useEffect(() => {
@@ -149,7 +151,11 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
 
         // 自动选择一个包含集数信息的文件用于识别
         const idx = parsed.findIndex(
-          (f) => f.parsed.episode && !f.parsed.episode.startsWith("CM") && !f.parsed.episode.startsWith("SP") && !f.parsed.episode.startsWith("NC"),
+          (f) =>
+            f.parsed.episode &&
+            !f.parsed.episode.startsWith("CM") &&
+            !f.parsed.episode.startsWith("SP") &&
+            !f.parsed.episode.startsWith("NC"),
         );
         if (idx >= 0) {
           setSelectedFileIdx(idx);
@@ -343,7 +349,11 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
           techInfo,
         );
 
-        const fileName = buildTargetFileNameWithEpisode(info, undefined, techInfo);
+        const fileName = buildTargetFileNameWithEpisode(
+          info,
+          undefined,
+          techInfo,
+        );
         return {
           sourcePath: file.path,
           sourceName: file.name,
@@ -384,10 +394,7 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
   }
 
   return (
-    <div
-      className="p-4"
-      style={{ flex: 1, minHeight: 0, overflowY: "auto" }}
-    >
+    <div className="p-4" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
       {/* 目录信息 */}
       <div className="mb-4">
         <Text type="secondary" className="text-xs">
@@ -397,8 +404,11 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
       </div>
 
       {scanning ? (
-        <div className="flex justify-center py-8">
-          <Spin tip="扫描目录中..." />
+        <div className="flex flex-col justify-center items-center py-8 gap-3">
+          <Spin />
+          <Text type="secondary" className="text-xs">
+            扫描目录中...
+          </Text>
         </div>
       ) : mediaFiles.length === 0 ? (
         <Empty description="未找到视频文件" />

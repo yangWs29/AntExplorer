@@ -45,7 +45,7 @@ interface TmdbConfigForm {
   mediaPrefixPath: string;
 }
 
-const SystemContent = ({ modalId }: SystemContentProps) => {
+const SystemContent = () => {
   const { message } = App.useApp();
   const [form] = Form.useForm<TmdbConfigForm>();
   const [loading, setLoading] = useState(false);

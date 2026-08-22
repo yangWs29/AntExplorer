@@ -36,16 +36,7 @@ const DirectoryTreeSelector = ({
     return fullPath;
   };
 
-  // 将相对路径转换回完整路径
-  const getFullPath = (displayPath: string) => {
-    if (!displayPath) return rootDir;
-    if (displayPath.startsWith("/")) {
-      return rootDir + displayPath;
-    }
-    return rootDir + "/" + displayPath;
-  };
-
-  // 加载目录树
+// 加载目录树
   useEffect(() => {
     const loadTree = async () => {
       setLoading(true);
