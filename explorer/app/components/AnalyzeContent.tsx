@@ -254,9 +254,7 @@ const AnalyzeContent = ({ modalId }: AnalyzeContentProps) => {
     const baseDir = await getMediaLibraryBaseDirAction();
     const config = await getTmdbConfigAction();
     const prefixPath = (config.mediaPrefixPath || "").replace(/\/+$/, "");
-    const effectiveBaseDir = prefixPath
-      ? `${prefixPath}${baseDir.startsWith("/") ? "" : "/"}${baseDir}`
-      : baseDir;
+    const effectiveBaseDir = prefixPath || baseDir;
 
     // 从 parsedInfo 获取季号
     const seasonNumber = parsedInfo?.season

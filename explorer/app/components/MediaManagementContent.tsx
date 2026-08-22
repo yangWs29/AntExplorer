@@ -295,9 +295,7 @@ const MediaManagementContent = ({ modalId }: MediaManagementContentProps) => {
       const baseDir = await getMediaLibraryBaseDirAction();
       const config = await getTmdbConfigAction();
       const prefixPath = (config.mediaPrefixPath || "").replace(/\/+$/, "");
-      const effectiveBaseDir = prefixPath
-        ? `${prefixPath}${baseDir.startsWith("/") ? "" : "/"}${baseDir}`
-        : baseDir;
+      const effectiveBaseDir = prefixPath || baseDir;
       const seasonNumber = parsed.season
         ? parseInt(parsed.season, 10)
         : undefined;

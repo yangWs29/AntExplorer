@@ -267,9 +267,7 @@ const BatchAnalyzeContent = ({ modalId }: BatchAnalyzeContentProps) => {
     const baseDir = await getMediaLibraryBaseDirAction();
     const config = await getTmdbConfigAction();
     const prefixPath = (config.mediaPrefixPath || "").replace(/\/+$/, "");
-    const effectiveBaseDir = prefixPath
-      ? `${prefixPath}${baseDir.startsWith("/") ? "" : "/"}${baseDir}`
-      : baseDir;
+    const effectiveBaseDir = prefixPath || baseDir;
 
     const info: MediaClassifyInfo = {
       title: detail.title,
