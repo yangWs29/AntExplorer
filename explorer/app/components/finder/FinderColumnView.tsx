@@ -165,7 +165,6 @@ interface ColumnPanelProps {
 
 const ColumnPanel = ({
   path,
-  level,
   width,
   selectedPath,
   onSelect,

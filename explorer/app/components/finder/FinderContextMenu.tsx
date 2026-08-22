@@ -37,7 +37,6 @@ interface FinderContextMenuProps {
 const FinderContextMenu = ({
   filePath,
   fileName,
-  isDirectory,
   children,
 }: FinderContextMenuProps) => {
   const { message, modal: modalConfirm } = App.useApp();
@@ -54,10 +53,7 @@ const FinderContextMenu = ({
     setLoading,
     setDetailFile,
     setRenamingFile,
-    navigateTo,
   } = useFinderStore();
-
-  const currentFile = fileList.find((f) => f.path === filePath);
 
   // 复制
   const handleCopy = () => {

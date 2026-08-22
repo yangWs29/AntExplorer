@@ -54,7 +54,7 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
   } = useFinderStore();
 
   // 同步 modal store 的导航到 finder store
-  const { getModalById, navigateToPath, goBack: modalGoBack } = useModalStore();
+  const { getModalById, navigateToPath } = useModalStore();
   const modal = getModalById(modalId);
 
   // 当 modal path 变化时（通过面包屑/后退导航），同步到 finder store

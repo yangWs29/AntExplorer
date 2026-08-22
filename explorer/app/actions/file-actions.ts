@@ -1,7 +1,7 @@
 "use server";
 
 import { readdir, stat, rename, copyFile, rm, link, mkdir } from "fs/promises";
-import { join, basename, extname, dirname } from "path";
+import { join, basename, extname } from "path";
 import { FileItem } from "@/app/store/explorer-modal-store";
 import Seven from "node-7z";
 import sevenBin from "7zip-bin-full";
