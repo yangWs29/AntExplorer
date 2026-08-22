@@ -21,7 +21,8 @@ export type ModalType =
   | "analyze"
   | "batch-analyze"
   | "media-management"
-  | "system";
+  | "system"
+  | "finder";
 
 export interface ModalInstance {
   id: string;
@@ -91,6 +92,7 @@ interface ExplorerModalStore {
   openBatchAnalyzeModal: (batchAnalyzeData: BatchAnalyzeData) => void;
   openMediaManagementModal: (mediaManagementData: MediaManagementData) => void;
   openSystemModal: () => void;
+  openFinderModal: (path: string) => void;
   closeModal: (id: string) => void;
   bringToFront: (id: string) => void;
   navigateToPath: (id: string, path: string, title?: string) => void;
@@ -290,6 +292,29 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         historyIndex: 0,
         fileList: [],
         loading: false,
+        viewMode: "icon",
+        iconColumns: 4,
+        sortField: "name",
+        sortOrder: "asc",
+      };
+      return {
+        modals: [...state.modals, newModal],
+        nextZIndex: state.nextZIndex + 1,
+      };
+    }),
+  openFinderModal: (path) =>
+    set((state) => {
+      const id = `finder-${Date.now()}-${Math.random()}`;
+      const newModal: ModalInstance = {
+        id,
+        type: "finder",
+        title: path.split("/").pop() || path || "Finder",
+        path,
+        zIndex: state.nextZIndex,
+        history: [path],
+        historyIndex: 0,
+        fileList: [],
+        loading: true,
         viewMode: "icon",
         iconColumns: 4,
         sortField: "name",

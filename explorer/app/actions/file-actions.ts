@@ -1,7 +1,7 @@
 "use server";
 
 import { readdir, stat, rename, copyFile, rm, link, mkdir } from "fs/promises";
-import { join, basename, extname } from "path";
+import { join, basename, extname, dirname } from "path";
 import { FileItem } from "@/app/store/explorer-modal-store";
 import Seven from "node-7z";
 import sevenBin from "7zip-bin-full";
@@ -426,4 +426,62 @@ export async function batchHardLinkAction(
 
   const allSuccess = results.every((r) => r.success);
   return { success: allSuccess, results };
+}
+
+// 获取文件详细统计信息
+export async function getFileStatsAction(filePath: string): Promise<{
+  name: string;
+  path: string;
+  isDirectory: boolean;
+  size: number;
+  modifiedTime: Date;
+  createdTime: Date;
+  permissions: string;
+  linkCount: number;
+}> {
+  try {
+    const stats = await stat(filePath);
+    // 将权限位转换为 rwx 字符串
+    const mode = stats.mode;
+    const perm = [
+      mode & 0o400 ? "r" : "-",
+      mode & 0o200 ? "w" : "-",
+      mode & 0o100 ? "x" : "-",
+      mode & 0o040 ? "r" : "-",
+      mode & 0o020 ? "w" : "-",
+      mode & 0o010 ? "x" : "-",
+      mode & 0o004 ? "r" : "-",
+      mode & 0o002 ? "w" : "-",
+      mode & 0o001 ? "x" : "-",
+    ].join("");
+
+    return {
+      name: basename(filePath),
+      path: filePath,
+      isDirectory: stats.isDirectory(),
+      size: stats.size,
+      modifiedTime: stats.mtime,
+      createdTime: stats.birthtime,
+      permissions: perm,
+      linkCount: stats.nlink,
+    };
+  } catch (error) {
+    console.error("获取文件统计信息失败:", error);
+    throw error;
+  }
+}
+
+// 新建文件夹
+export async function createDirectoryAction(
+  dirPath: string,
+  name: string,
+): Promise<{ success: boolean; path: string }> {
+  try {
+    const newPath = join(dirPath, name);
+    await mkdir(newPath, { recursive: true });
+    return { success: true, path: newPath };
+  } catch (error) {
+    console.error("创建文件夹失败:", error);
+    throw error;
+  }
 }

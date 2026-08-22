@@ -23,12 +23,14 @@ import AnalyzeContent from "./AnalyzeContent";
 import BatchAnalyzeContent from "./BatchAnalyzeContent";
 import MediaManagementContent from "./MediaManagementContent";
 import SystemContent from "./SystemContent";
+import FinderContent from "./FinderContent";
 
 interface DraggableModalProps {
   modal: ModalInstance;
 }
 
 type WindowSize = "default" | "fullscreen" | "half-width";
+type ResizeDir = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw" | null;
 
 const DraggableModal = memo(({ modal }: DraggableModalProps) => {
   const { closeModal, bringToFront, goBack, canGoBack } = useModalStore();
@@ -50,6 +52,8 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
     return { x: 100 + offset, y: 100 + offset };
   });
   const modalRef = useRef<HTMLDivElement>(null);
+  const [resizeDir, setResizeDir] = useState<ResizeDir>(null);
+  const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0, px: 0, py: 0 });
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -94,6 +98,71 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging, dragOffset]);
+
+  // ── 边缘拖拽调整大小 ──
+  const handleResizeMouseDown = useCallback(
+    (e: React.MouseEvent, dir: ResizeDir) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!modalRef.current) return;
+      const rect = modalRef.current.getBoundingClientRect();
+      resizeStart.current = {
+        x: e.clientX,
+        y: e.clientY,
+        w: rect.width,
+        h: rect.height,
+        px: position.x,
+        py: position.y,
+      };
+      setResizeDir(dir);
+      setWindowSize("default");
+      bringToFront(modal.id);
+    },
+    [position.x, position.y, modal.id, bringToFront],
+  );
+
+  useEffect(() => {
+    if (!resizeDir) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      const s = resizeStart.current;
+      let dx = e.clientX - s.x;
+      let dy = e.clientY - s.y;
+      let newW = s.w;
+      let newH = s.h;
+      let newX = s.px;
+      let newY = s.py;
+
+      if (resizeDir.includes("e")) newW = Math.max(400, s.w + dx);
+      if (resizeDir.includes("w")) {
+        newW = Math.max(400, s.w - dx);
+        newX = s.px + (s.w - newW);
+      }
+      if (resizeDir.includes("s")) newH = Math.max(300, s.h + dy);
+      if (resizeDir.includes("n")) {
+        newH = Math.max(300, s.h - dy);
+        newY = s.py + (s.h - newH);
+      }
+
+      setPosition({ x: newX, y: newY });
+      modalRef.current!.style.width = newW + "px";
+      modalRef.current!.style.height = newH + "px";
+    };
+    const handleMouseUp = () => {
+      setResizeDir(null);
+      // 保存自定义尺寸，以便恢复默认时保持调整后的尺寸
+      if (modalRef.current) {
+        const rect = modalRef.current.getBoundingClientRect();
+        setCustomSize({ w: rect.width, h: rect.height });
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [resizeDir]);
 
   // 生成面包屑路径（使用 useMemo 缓存）
   const breadcrumbItems = React.useMemo(() => {
@@ -149,6 +218,7 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
       onClick: () => {
         setWindowSize("fullscreen");
         setPosition({ x: 0, y: 0 });
+        setCustomSize(null);
       },
     },
     {
@@ -158,6 +228,7 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
       onClick: () => {
         setWindowSize("half-width");
         setPosition({ x: Math.round(window.innerWidth / 4), y: 0 });
+        setCustomSize(null);
       },
     },
     { type: "divider" },
@@ -168,49 +239,73 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
       onClick: () => {
         setWindowSize("default");
         setPosition(defaultPosition);
+        setCustomSize(null);
       },
     },
   ];
 
-  const defaultWidth =
+  const defaultWidthNum =
     (
       {
-        "file-detail": "500px",
-        compress: "500px",
-        extract: "500px",
-        analyze: "560px",
-        "batch-analyze": "560px",
-        "media-management": "900px",
-        system: "520px",
-      } as Record<string, string>
-    )[modal.type] ?? "600px";
+        "file-detail": 500,
+        compress: 500,
+        extract: 500,
+        analyze: 560,
+        "batch-analyze": 560,
+        "media-management": 900,
+        system: 520,
+        finder: 960,
+      } as Record<string, number>
+    )[modal.type] ?? 600;
+
+  const [customSize, setCustomSize] = useState<{
+    w: number;
+    h: number;
+  } | null>(null);
+
+  const isFinder = modal.type === "finder";
+
+  const computedDims = (() => {
+    if (windowSize === "fullscreen")
+      return { w: window.innerWidth, h: window.innerHeight };
+    if (windowSize === "half-width")
+      return { w: window.innerWidth * 0.5, h: window.innerHeight };
+    if (customSize) return customSize;
+    return {
+      w: defaultWidthNum,
+      h: isFinder ? window.innerHeight * 0.85 : undefined,
+    };
+  })();
 
   const style: React.CSSProperties = {
     position: "fixed",
     left: position.x,
     top: position.y,
     zIndex: modal.zIndex,
-    width:
-      windowSize === "fullscreen"
-        ? "100vw"
-        : windowSize === "half-width"
-          ? "50vw"
-          : defaultWidth,
-    height:
-      windowSize === "fullscreen" || windowSize === "half-width"
-        ? "100vh"
-        : undefined,
-    maxHeight:
-      windowSize === "fullscreen" || windowSize === "half-width"
-        ? undefined
-        : "70vh",
+    width: computedDims.w,
+    height: computedDims.h,
+    minHeight: isFinder ? 300 : undefined,
     margin: 0,
   };
 
   const bodyMaxHeight =
     windowSize === "fullscreen" || windowSize === "half-width"
       ? "calc(100vh - 90px)"
-      : "calc(70vh - 90px)";
+      : isFinder
+        ? "calc(100% - 40px)"
+        : "calc(70vh - 90px)";
+
+  // 其他类型没有固定 Card height，保留 maxHeight 约束
+  const bodyStyle: React.CSSProperties = {
+    padding: 0,
+    height: bodyMaxHeight,
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column" as const,
+    ...(isDragging
+      ? { pointerEvents: "none" as const, userSelect: "none" as const }
+      : {}),
+  };
 
   return (
     <Card
@@ -219,13 +314,7 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
       style={style}
       onMouseDown={() => bringToFront(modal.id)}
       styles={{
-        body: {
-          padding: 0,
-          height: bodyMaxHeight,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        },
+        body: bodyStyle,
         header: {
           cursor: "move",
           userSelect: "none",
@@ -316,7 +405,111 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
         <MediaManagementContent modalId={modal.id} />
       ) : modal.type === "system" ? (
         <SystemContent modalId={modal.id} />
+      ) : modal.type === "finder" ? (
+        <FinderContent modalId={modal.id} />
       ) : null}
+
+      {/* 边缘拖拽调整大小手柄 */}
+      {windowSize === "default" && (
+        <>
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 5,
+              cursor: "n-resize",
+              zIndex: 10,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, "n")}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 5,
+              cursor: "s-resize",
+              zIndex: 10,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, "s")}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              bottom: 0,
+              width: 5,
+              cursor: "w-resize",
+              zIndex: 10,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, "w")}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: 5,
+              cursor: "e-resize",
+              zIndex: 10,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, "e")}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: -3,
+              left: -3,
+              width: 14,
+              height: 14,
+              cursor: "nw-resize",
+              zIndex: 11,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, "nw")}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: -3,
+              right: -3,
+              width: 14,
+              height: 14,
+              cursor: "ne-resize",
+              zIndex: 11,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, "ne")}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: -3,
+              left: -3,
+              width: 14,
+              height: 14,
+              cursor: "sw-resize",
+              zIndex: 11,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, "sw")}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: -3,
+              right: -3,
+              width: 14,
+              height: 14,
+              cursor: "se-resize",
+              zIndex: 11,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, "se")}
+          />
+        </>
+      )}
     </Card>
   );
 });
