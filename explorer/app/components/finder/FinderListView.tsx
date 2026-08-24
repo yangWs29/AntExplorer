@@ -8,13 +8,15 @@ import {
 } from "@ant-design/icons";
 import { Table, Spin, Empty } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useFinderStore } from "@/app/store/finder-store";
+import { useFinderScope } from "@/app/hooks/use-finder-scope";
+import { getModalState } from "@/app/store/finder-store";
 import { isImageFile } from "@/app/hooks/global-image-preview-context";
 import { isVideoFile } from "@/app/hooks/use-video-preview";
 import { isArchiveFile } from "@/app/utils/file-utils";
 import { useCallback } from "react";
 
 interface FinderListViewProps {
+  modalId: string;
   onOpenItem: (item: { path: string; name: string; isDirectory: boolean }) => void;
 }
 
@@ -48,14 +50,14 @@ const getFileType = (name: string, isDirectory: boolean): string => {
   return ext;
 };
 
-const FinderListView = ({ onOpenItem }: FinderListViewProps) => {
+const FinderListView = ({ modalId, onOpenItem }: FinderListViewProps) => {
   const {
     fileList,
     loading,
     selectedFiles,
     selectFile,
     clearSelection,
-  } = useFinderStore();
+  } = useFinderScope(modalId);
 
   const handleRowClick = useCallback(
     (item: (typeof fileList)[0], index: number, e: React.MouseEvent) => {
@@ -76,7 +78,7 @@ const FinderListView = ({ onOpenItem }: FinderListViewProps) => {
 
   const handleDragStart = useCallback(
     (e: React.DragEvent, path: string) => {
-      const { selectedFiles: selFiles } = useFinderStore.getState();
+      const { selectedFiles: selFiles } = getModalState(modalId);
       const paths = selFiles.includes(path) ? selFiles : [path];
       e.dataTransfer.setData(
         "application/x-finder-paths",
@@ -84,7 +86,7 @@ const FinderListView = ({ onOpenItem }: FinderListViewProps) => {
       );
       e.dataTransfer.effectAllowed = "move";
     },
-    [],
+    [modalId],
   );
 
   const getFileIcon = (item: (typeof fileList)[0]) => {

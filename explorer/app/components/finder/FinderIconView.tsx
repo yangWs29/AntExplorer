@@ -7,8 +7,8 @@ import {
   FileZipOutlined,
 } from "@ant-design/icons";
 import { Tooltip, Spin, Empty } from "antd";
-import { useFinderStore } from "@/app/store/finder-store";
-import type { FileItem } from "@/app/store/finder-store";
+import { useFinderScope } from "@/app/hooks/use-finder-scope";
+import { getModalState, type FileItem } from "@/app/store/finder-store";
 import { isImageFile } from "@/app/hooks/global-image-preview-context";
 import { isVideoFile } from "@/app/hooks/use-video-preview";
 import { useVideoThumbnail } from "@/app/hooks/use-video-thumbnail";
@@ -18,6 +18,7 @@ import { useCallback, useMemo, memo, useState, useEffect, useRef } from "react";
 import FinderContextMenu from "./FinderContextMenu";
 
 interface FinderIconViewProps {
+  modalId: string;
   onOpenItem: (item: {
     path: string;
     name: string;
@@ -43,6 +44,7 @@ function formatFileName(name: string, maxLength: number = 20) {
 /* ─── 单个文件项：React.memo 避免无关重渲染 ─── */
 
 interface IconItemProps {
+  modalId: string;
   item: FileItem;
   index: number;
   isSelected: boolean;
@@ -53,6 +55,7 @@ interface IconItemProps {
 
 const IconItem = memo(
   function IconItem({
+    modalId,
     item,
     index,
     isSelected,
@@ -67,6 +70,7 @@ const IconItem = memo(
 
     return (
       <FinderContextMenu
+        modalId={modalId}
         filePath={item.path}
         fileName={item.name}
         isDirectory={item.isDirectory}
@@ -129,12 +133,9 @@ const IconItem = memo(
 
 /* ─── 主组件 ─── */
 
-const FinderIconView = ({ onOpenItem }: FinderIconViewProps) => {
-  const fileList = useFinderStore((s) => s.fileList);
-  const loading = useFinderStore((s) => s.loading);
-  const selectedFiles = useFinderStore((s) => s.selectedFiles);
-  const selectFile = useFinderStore((s) => s.selectFile);
-  const clearSelection = useFinderStore((s) => s.clearSelection);
+const FinderIconView = ({ modalId, onOpenItem }: FinderIconViewProps) => {
+  const { fileList, loading, selectedFiles, selectFile, clearSelection } =
+    useFinderScope(modalId);
 
   // O(1) 查找选中状态
   const selectedSet = useMemo(() => new Set(selectedFiles), [selectedFiles]);
@@ -157,11 +158,11 @@ const FinderIconView = ({ onOpenItem }: FinderIconViewProps) => {
   );
 
   const handleDragStart = useCallback((e: React.DragEvent, path: string) => {
-    const { selectedFiles: selFiles } = useFinderStore.getState();
+    const { selectedFiles: selFiles } = getModalState(modalId);
     const paths = selFiles.includes(path) ? selFiles : [path];
     e.dataTransfer.setData("application/x-finder-paths", JSON.stringify(paths));
     e.dataTransfer.effectAllowed = "move";
-  }, []);
+  }, [modalId]);
 
   if (loading) {
     return (
@@ -188,6 +189,7 @@ const FinderIconView = ({ onOpenItem }: FinderIconViewProps) => {
         {fileList.map((item, index) => (
           <IconItem
             key={item.path}
+            modalId={modalId}
             item={item}
             index={index}
             isSelected={selectedSet.has(item.path)}

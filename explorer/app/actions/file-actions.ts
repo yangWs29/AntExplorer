@@ -135,15 +135,19 @@ export async function readDirectory(dirPath?: string): Promise<FileItem[]> {
 
     for (const file of files) {
       const fullPath = join(targetPath, file);
-      const stats = await stat(fullPath);
+      try {
+        const stats = await stat(fullPath);
 
-      fileItems.push({
-        name: file,
-        path: fullPath,
-        isDirectory: stats.isDirectory(),
-        size: stats.size,
-        modifiedTime: stats.mtime,
-      });
+        fileItems.push({
+          name: file,
+          path: fullPath,
+          isDirectory: stats.isDirectory(),
+          size: stats.size,
+          modifiedTime: stats.mtime,
+        });
+      } catch {
+        // 跳过无法访问的文件（如 macOS 的 .VolumeIcon.icns 等）
+      }
     }
 
     // 排序：文件夹在前，文件在后

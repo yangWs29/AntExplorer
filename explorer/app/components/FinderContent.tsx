@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, useState } from "react";
 import { App, Modal, Input, Descriptions, Spin } from "antd";
+import { useFinderScope } from "@/app/hooks/use-finder-scope";
 import { useFinderStore } from "@/app/store/finder-store";
 import {
   readDirectory,
@@ -37,32 +38,37 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
     loading,
     viewMode,
     selectedFiles,
-    clipboardFiles,
-    clipboardMode,
     detailFile,
     renamingFile,
     navigateTo,
     setFileList,
     setLoading,
     clearSelection,
-    selectAll,
-    copyFiles,
-    cutFiles,
-    clearClipboard,
     setDetailFile,
     setRenamingFile,
-  } = useFinderStore();
+  } = useFinderScope(modalId);
 
-  // 同步 modal store 的导航到 finder store
-  const { getModalById, navigateToPath } = useModalStore();
-  const modal = getModalById(modalId);
-
-  // 当 modal path 变化时（通过面包屑/后退导航），同步到 finder store
+  // 挂载时初始化该 modalId 的 finder 状态（每个窗口独立）
   useEffect(() => {
-    if (modal && modal.path !== currentPath) {
-      navigateTo(modal.path);
-    }
-  }, [modal?.path]);
+    const m = useModalStore.getState().modals.find((mod) => mod.id === modalId);
+    if (!m) return;
+    useFinderStore.getState().initModal(modalId, m.path);
+  }, [modalId]);
+
+  // finder currentPath 变化 → 同步 modal 的 path/title，不操作 history
+  useEffect(() => {
+    const m = useModalStore.getState().modals.find((mod) => mod.id === modalId);
+    if (!m || m.path === currentPath) return;
+
+    const folderName = currentPath.split("/").pop() || currentPath;
+    useModalStore.setState((state) => ({
+      modals: state.modals.map((mod) =>
+        mod.id === modalId
+          ? { ...mod, path: currentPath, title: folderName }
+          : mod,
+      ),
+    }));
+  }, [currentPath, modalId]);
 
   const [renameValue, setRenameValue] = useState("");
   const [renameModalOpen, setRenameModalOpen] = useState(false);
@@ -119,8 +125,6 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
     (item: { path: string; name: string; isDirectory: boolean }) => {
       if (item.isDirectory) {
         navigateTo(item.path, item.name);
-        // 同步到 modal store
-        navigateToPath(modalId, item.path, item.name);
       } else if (isImageFile(item.name)) {
         const imageFiles = fileList.filter((f) => isImageFile(f.name));
         const items = imageFiles.map((img) => toFileUrl(img.path));
@@ -135,7 +139,7 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
         window.open(toFileUrl(item.path), "_blank");
       }
     },
-    [fileList, navigateTo, navigateToPath, modalId, openPreview, openVideoPreview],
+    [fileList, navigateTo, openPreview, openVideoPreview],
   );
 
   // 新建文件夹
@@ -187,136 +191,6 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
     setRenamingFile(null);
   };
 
-  // 键盘快捷键
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
-
-      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-      const modKey = isMac ? e.metaKey : e.ctrlKey;
-
-      if (modKey && e.key === "a") {
-        e.preventDefault();
-        selectAll();
-      } else if (modKey && e.key === "c") {
-        e.preventDefault();
-        if (selectedFiles.length > 0) {
-          copyFiles(selectedFiles);
-          message.success(`已复制 ${selectedFiles.length} 个项目`);
-        }
-      } else if (modKey && e.key === "x") {
-        e.preventDefault();
-        if (selectedFiles.length > 0) {
-          cutFiles(selectedFiles);
-          message.success(`已剪切 ${selectedFiles.length} 个项目`);
-        }
-      } else if (modKey && e.key === "v") {
-        e.preventDefault();
-        handlePasteFromKeyboard();
-      } else if (e.key === "Delete" || e.key === "Backspace") {
-        if (selectedFiles.length > 0) {
-          e.preventDefault();
-          handleDeleteSelected();
-        } else if (!modKey) {
-          e.preventDefault();
-          const parent = currentPath.substring(0, currentPath.lastIndexOf("/"));
-          if (parent) {
-            const upPath = parent || "/";
-            navigateTo(upPath);
-            navigateToPath(modalId, upPath);
-          }
-        }
-      } else if (e.key === "F2") {
-        e.preventDefault();
-        if (selectedFiles.length === 1) {
-          const file = fileList.find((f) => f.path === selectedFiles[0]);
-          if (file) {
-            setRenamingFile({ path: file.path, name: file.name });
-          }
-        }
-      } else if (e.key === "Enter") {
-        if (selectedFiles.length === 1) {
-          const file = fileList.find((f) => f.path === selectedFiles[0]);
-          if (file) {
-            handleOpenItem(file);
-          }
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    selectedFiles,
-    fileList,
-    currentPath,
-    selectAll,
-    copyFiles,
-    cutFiles,
-    clearClipboard,
-    navigateTo,
-    navigateToPath,
-    modalId,
-    setRenamingFile,
-    message,
-  ]);
-
-  const handlePasteFromKeyboard = async () => {
-    if (clipboardFiles.length === 0) {
-      message.warning("没有可粘贴的文件");
-      return;
-    }
-    try {
-      setLoading(true);
-      if (clipboardMode === "move") {
-        await moveFiles(clipboardFiles, currentPath);
-      } else {
-        const { pasteFiles } = await import("@/app/actions/file-actions");
-        await pasteFiles(clipboardFiles, currentPath);
-      }
-      const files = await readDirectory(currentPath);
-      setFileList(files);
-      message.success("粘贴成功");
-      clearClipboard();
-    } catch (error) {
-      message.error("粘贴失败");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteSelected = () => {
-    if (selectedFiles.length === 0) return;
-    Modal.confirm({
-      title: "确认删除",
-      content: `确定要删除选中的 ${selectedFiles.length} 个项目吗？`,
-      okText: "删除",
-      okType: "danger",
-      cancelText: "取消",
-      onOk: async () => {
-        try {
-          setLoading(true);
-          const { deleteFiles } = await import("@/app/actions/file-actions");
-          await deleteFiles(selectedFiles);
-          const files = await readDirectory(currentPath);
-          setFileList(files);
-          message.success("删除成功");
-        } catch (error) {
-          message.error("删除失败");
-          console.error(error);
-        } finally {
-          setLoading(false);
-        }
-      },
-    });
-  };
-
   // 处理拖拽到内容区域
   const handleContentDrop = async (e: React.DragEvent) => {
     e.preventDefault();
@@ -364,15 +238,15 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* 工具栏 */}
-      <FinderToolbar onNewFolder={handleNewFolder} />
+      <FinderToolbar modalId={modalId} onNewFolder={handleNewFolder} />
 
       {/* 主体区域 */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* 侧边栏 */}
-        <FinderSidebar />
+        <FinderSidebar modalId={modalId} />
 
         {/* 内容区域 */}
-        <FinderContextMenu>
+        <FinderContextMenu modalId={modalId}>
           <div
             className="flex-1 flex flex-col min-h-0 overflow-hidden"
             onDrop={handleContentDrop}
@@ -384,18 +258,19 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
                 <Spin size="large" />
               </div>
             ) : viewMode === "icon" ? (
-              <FinderIconView onOpenItem={handleOpenItem} />
+              <FinderIconView modalId={modalId} onOpenItem={handleOpenItem} />
             ) : viewMode === "list" ? (
-              <FinderListView onOpenItem={handleOpenItem} />
+              <FinderListView modalId={modalId} onOpenItem={handleOpenItem} />
             ) : (
-              <FinderColumnView onOpenItem={handleOpenItem} />
+              <FinderColumnView modalId={modalId} onOpenItem={handleOpenItem} />
             )}
 
             {/* 底部状态栏 */}
             <div className="px-3 py-1.5 border-t border-gray-700 text-xs text-gray-500 flex items-center justify-between">
               <span>
                 {fileList.length} 个项目
-                {selectedFiles.length > 0 && `，已选中 ${selectedFiles.length} 个`}
+                {selectedFiles.length > 0 &&
+                  `，已选中 ${selectedFiles.length} 个`}
               </span>
               <span>{currentPath}</span>
             </div>
@@ -419,7 +294,9 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
       >
         {detailStats ? (
           <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="名称">{detailStats.name}</Descriptions.Item>
+            <Descriptions.Item label="名称">
+              {detailStats.name}
+            </Descriptions.Item>
             <Descriptions.Item label="类型">
               {detailStats.isDirectory ? "文件夹" : "文件"}
             </Descriptions.Item>

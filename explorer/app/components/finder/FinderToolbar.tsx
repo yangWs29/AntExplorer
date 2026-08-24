@@ -10,14 +10,15 @@ import {
   FolderAddOutlined,
 } from "@ant-design/icons";
 import { Button, Breadcrumb, Segmented, Tooltip } from "antd";
-import { useFinderStore } from "@/app/store/finder-store";
+import { useFinderScope } from "@/app/hooks/use-finder-scope";
 import { useMemo } from "react";
 
 interface FinderToolbarProps {
+  modalId: string;
   onNewFolder: () => void;
 }
 
-const FinderToolbar = ({ onNewFolder }: FinderToolbarProps) => {
+const FinderToolbar = ({ modalId, onNewFolder }: FinderToolbarProps) => {
   const {
     currentPath,
     viewMode,
@@ -28,28 +29,18 @@ const FinderToolbar = ({ onNewFolder }: FinderToolbarProps) => {
     goUp,
     navigateTo,
     setViewMode,
-  } = useFinderStore();
+  } = useFinderScope(modalId);
 
   const breadcrumbItems = useMemo(() => {
-    const segments = currentPath.split("/").filter(Boolean);
-    const items = [];
-
-    // 根目录
-    items.push({
-      title: (
-        <span
-          className="cursor-pointer hover:text-blue-400 transition-colors"
-          onClick={() => navigateTo("/")}
-        >
-          /
-        </span>
-      ),
-      key: "/",
-    });
+    // 规范化路径，消除多重斜杠
+    const normalizedPath = currentPath.replace(/\/+/g, "/");
+    const segments = normalizedPath.split("/").filter(Boolean);
+    const items: { title: React.ReactNode; key: string }[] = [];
 
     let accumulated = "";
     segments.forEach((seg, idx) => {
       accumulated += "/" + seg;
+      const itemPath = accumulated;
       const isLast = idx === segments.length - 1;
       items.push({
         title: isLast ? (
@@ -57,12 +48,14 @@ const FinderToolbar = ({ onNewFolder }: FinderToolbarProps) => {
         ) : (
           <span
             className="cursor-pointer hover:text-blue-400 transition-colors"
-            onClick={() => navigateTo(accumulated)}
+            onClick={() => {
+              navigateTo(itemPath);
+            }}
           >
             {seg}
           </span>
         ),
-        key: accumulated,
+        key: itemPath,
       });
     });
 

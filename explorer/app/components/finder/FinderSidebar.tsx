@@ -5,12 +5,16 @@ import { Tree } from "antd";
 import type { DataNode } from "antd/es/tree";
 import { FolderOutlined } from "@ant-design/icons";
 import { getDirectoryTree, getSubDirectories } from "@/app/actions/file-actions";
-import { useFinderStore } from "@/app/store/finder-store";
+import { useFinderScope } from "@/app/hooks/use-finder-scope";
 
 const ROOT_DIR = process.env.NEXT_PUBLIC_DIR || "/";
 
-const FinderSidebar = () => {
-  const { currentPath, navigateTo } = useFinderStore();
+interface FinderSidebarProps {
+  modalId: string;
+}
+
+const FinderSidebar = ({ modalId }: FinderSidebarProps) => {
+  const { currentPath, navigateTo } = useFinderScope(modalId);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
   const [loadedKeys, setLoadedKeys] = useState<Set<string>>(new Set());
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);

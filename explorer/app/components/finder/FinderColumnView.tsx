@@ -9,7 +9,8 @@ import {
   RightOutlined,
 } from "@ant-design/icons";
 import { Spin, Empty } from "antd";
-import { useFinderStore, type FileItem } from "@/app/store/finder-store";
+import { useFinderScope } from "@/app/hooks/use-finder-scope";
+import { type FileItem } from "@/app/store/finder-store";
 import { readDirectory } from "@/app/actions/file-actions";
 import {
   isImageFile,
@@ -21,6 +22,7 @@ import { isArchiveFile, toFileUrl } from "@/app/utils/file-utils";
 import FinderContextMenu from "./FinderContextMenu";
 
 interface FinderColumnViewProps {
+  modalId: string;
   onOpenItem: (item: {
     path: string;
     name: string;
@@ -32,7 +34,7 @@ const DEFAULT_COLUMN_WIDTH = 220;
 const MIN_COLUMN_WIDTH = 120;
 const MAX_COLUMN_WIDTH = 500;
 
-const FinderColumnView = ({ onOpenItem }: FinderColumnViewProps) => {
+const FinderColumnView = ({ modalId, onOpenItem }: FinderColumnViewProps) => {
   const {
     columnPaths,
     columnSelections,
@@ -40,7 +42,7 @@ const FinderColumnView = ({ onOpenItem }: FinderColumnViewProps) => {
     setColumnSelection,
     resetColumnView,
     currentPath,
-  } = useFinderStore();
+  } = useFinderScope(modalId);
 
   const { openPreview } = useGlobalImagePreview();
   const { openVideoPreview } = useVideoPreview();
@@ -119,6 +121,7 @@ const FinderColumnView = ({ onOpenItem }: FinderColumnViewProps) => {
             }
           >
             <ColumnPanel
+              modalId={modalId}
               path={path}
               level={level}
               width={isLast ? undefined : getWidth(level)}
@@ -149,6 +152,7 @@ const FinderColumnView = ({ onOpenItem }: FinderColumnViewProps) => {
 };
 
 interface ColumnPanelProps {
+  modalId: string;
   path: string;
   level: number;
   width?: number;
@@ -164,6 +168,7 @@ interface ColumnPanelProps {
 }
 
 const ColumnPanel = ({
+  modalId,
   path,
   width,
   selectedPath,
@@ -274,6 +279,7 @@ const ColumnPanel = ({
             return (
               <FinderContextMenu
                 key={item.path}
+                modalId={modalId}
                 filePath={item.path}
                 fileName={item.name}
                 isDirectory={item.isDirectory}

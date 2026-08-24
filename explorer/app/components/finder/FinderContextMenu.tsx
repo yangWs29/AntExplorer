@@ -15,7 +15,7 @@ import {
   EditOutlined,
   FolderAddOutlined,
 } from "@ant-design/icons";
-import { useFinderStore } from "@/app/store/finder-store";
+import { useFinderScope } from "@/app/hooks/use-finder-scope";
 import {
   deleteFiles,
   pasteFiles,
@@ -28,6 +28,7 @@ import {
 import { isArchiveFile, isVideoFile } from "@/app/utils/file-utils";
 
 interface FinderContextMenuProps {
+  modalId: string;
   filePath?: string;
   fileName?: string;
   isDirectory?: boolean;
@@ -35,6 +36,7 @@ interface FinderContextMenuProps {
 }
 
 const FinderContextMenu = ({
+  modalId,
   filePath,
   fileName,
   children,
@@ -53,7 +55,7 @@ const FinderContextMenu = ({
     setLoading,
     setDetailFile,
     setRenamingFile,
-  } = useFinderStore();
+  } = useFinderScope(modalId);
 
   // 复制
   const handleCopy = () => {
