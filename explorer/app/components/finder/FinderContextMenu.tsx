@@ -16,6 +16,7 @@ import {
   FolderAddOutlined,
 } from "@ant-design/icons";
 import { useFinderScope } from "@/app/hooks/use-finder-scope";
+import { useModalStore } from "@/app/store/explorer-modal-store";
 import {
   deleteFiles,
   pasteFiles,
@@ -44,7 +45,6 @@ const FinderContextMenu = ({
   const { message, modal: modalConfirm } = App.useApp();
   const {
     currentPath,
-    fileList,
     selectedFiles,
     clipboardFiles,
     clipboardMode,
@@ -56,6 +56,7 @@ const FinderContextMenu = ({
     setDetailFile,
     setRenamingFile,
   } = useFinderScope(modalId);
+  const { openAnalyzeModal } = useModalStore();
 
   // 复制
   const handleCopy = () => {
@@ -230,8 +231,9 @@ const FinderContextMenu = ({
             label: "识别",
             icon: <BarChartOutlined />,
             onClick: () => {
-              // 视频识别功能 - 可以通过 store 触发
-              message.info("视频识别功能");
+              if (filePath && fileName) {
+                openAnalyzeModal({ fileName, filePath });
+              }
             },
           },
         ]
@@ -292,7 +294,10 @@ const FinderContextMenu = ({
 
   return (
     <Dropdown menu={{ items: menuItems }} trigger={["contextMenu"]}>
-      <div style={{ display: "contents" }} onContextMenu={(e) => e.stopPropagation()}>
+      <div
+        style={{ display: "contents" }}
+        onContextMenu={(e) => e.stopPropagation()}
+      >
         {children}
       </div>
     </Dropdown>
