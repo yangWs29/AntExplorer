@@ -331,6 +331,7 @@ const MediaManagementContent = ({ modalId }: MediaManagementContentProps) => {
         effectiveBaseDir,
         seasonNumber,
         techInfo,
+        parsed.episode,
       );
 
       setTransferTarget(target);

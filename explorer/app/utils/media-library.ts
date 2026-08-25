@@ -237,11 +237,18 @@ export function computeTargetPath(
   baseDir: string,
   seasonNumber?: number,
   techInfo?: MediaTechInfo,
+  episode?: string,
 ): { category: MediaCategory | TvSubCategory; targetDir: string; fileName: string } {
   const category = classifyMedia(mediaType, info);
   const cnName = getChineseName(info);
   const year = getYear(info);
-  const targetFileName = buildTargetFileName(info, techInfo);
+
+  // 构建集数标签
+  const episodeTag =
+    mediaType === "tv" && episode
+      ? `E${episode.padStart(2, "0")}`
+      : undefined;
+  const targetFileName = buildTargetFileNameWithEpisode(info, episodeTag, techInfo);
 
   // 构建目录名：中文名 (年份)
   const dirName = year ? `${cnName} (${year})` : cnName;

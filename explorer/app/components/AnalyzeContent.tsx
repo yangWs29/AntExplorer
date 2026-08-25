@@ -293,6 +293,7 @@ const AnalyzeContent = ({ modalId }: AnalyzeContentProps) => {
       effectiveBaseDir,
       seasonNumber,
       techInfo,
+      parsedInfo?.episode,
     );
     setOrganizeTarget(target);
     setOrganizeOpen(true);
