@@ -92,6 +92,26 @@ export function parseVideoFileName(fileName: string): {
 }
 
 /**
+ * 检查文件是否是音频文件
+ * @param fileName - 文件名
+ * @returns 是否为音频文件
+ */
+export function isAudioFile(fileName: string): boolean {
+  const audioExtensions = [
+    ".mp3",
+    ".wav",
+    ".flac",
+    ".aac",
+    ".ogg",
+    ".wma",
+    ".m4a",
+    ".ape",
+  ];
+  const lowerName = fileName.toLowerCase();
+  return audioExtensions.some((ext) => lowerName.endsWith(ext));
+}
+
+/**
  * 检查文件是否是文本文件（可编辑）
  * @param fileName - 文件名
  * @returns 是否为文本文件
