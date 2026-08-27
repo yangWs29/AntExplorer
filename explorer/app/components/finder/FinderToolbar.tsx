@@ -8,6 +8,7 @@ import {
   UnorderedListOutlined,
   ColumnWidthOutlined,
   FolderAddOutlined,
+  FileAddOutlined,
 } from "@ant-design/icons";
 import { Button, Breadcrumb, Segmented, Tooltip } from "antd";
 import { useFinderScope } from "@/app/hooks/use-finder-scope";
@@ -16,9 +17,10 @@ import { useMemo } from "react";
 interface FinderToolbarProps {
   modalId: string;
   onNewFolder: () => void;
+  onNewFile: () => void;
 }
 
-const FinderToolbar = ({ modalId, onNewFolder }: FinderToolbarProps) => {
+const FinderToolbar = ({ modalId, onNewFolder, onNewFile }: FinderToolbarProps) => {
   const {
     currentPath,
     viewMode,
@@ -106,6 +108,16 @@ const FinderToolbar = ({ modalId, onNewFolder }: FinderToolbarProps) => {
         ]}
         onChange={(val) => setViewMode(val as "icon" | "list" | "column")}
       />
+
+      {/* 新建文件 */}
+      <Tooltip title="新建文件">
+        <Button
+          type="text"
+          size="small"
+          icon={<FileAddOutlined />}
+          onClick={onNewFile}
+        />
+      </Tooltip>
 
       {/* 新建文件夹 */}
       <Tooltip title="新建文件夹">

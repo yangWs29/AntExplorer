@@ -79,6 +79,7 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
 
   const [renameValue, setRenameValue] = useState("");
   const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [isNewFile, setIsNewFile] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [textEditorOpen, setTextEditorOpen] = useState(false);
   const [textEditorPath, setTextEditorPath] = useState("");
@@ -202,8 +203,17 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
 
   // 新建文件夹
   const handleNewFolder = useCallback(() => {
+    setIsNewFile(false);
     setRenamingFile({ path: currentPath, name: "" });
     setRenameValue("新建文件夹");
+    setRenameModalOpen(true);
+  }, [currentPath, setRenamingFile]);
+
+  // 新建文件
+  const handleNewFile = useCallback(() => {
+    setIsNewFile(true);
+    setRenamingFile({ path: currentPath, name: "" });
+    setRenameValue("新建文件.txt");
     setRenameModalOpen(true);
   }, [currentPath, setRenamingFile]);
 
@@ -215,16 +225,20 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
       return;
     }
 
-    // 如果是新建文件夹
+    // 如果是新建文件夹或新建文件
     if (!renamingFile.path || renamingFile.path === currentPath) {
       try {
         setLoading(true);
-        await createDirectoryAction(currentPath, renameValue.trim());
+        if (isNewFile) {
+          await writeTextFileAction(`${currentPath}/${renameValue.trim()}`, "");
+        } else {
+          await createDirectoryAction(currentPath, renameValue.trim());
+        }
         const files = await readDirectory(currentPath);
         setFileList(files);
-        message.success("文件夹创建成功");
+        message.success(isNewFile ? "文件创建成功" : "文件夹创建成功");
       } catch (error) {
-        message.error("创建文件夹失败");
+        message.error(isNewFile ? "创建文件失败" : "创建文件夹失败");
         console.error(error);
       } finally {
         setLoading(false);
@@ -247,6 +261,7 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
 
     setRenameModalOpen(false);
     setRenamingFile(null);
+    setIsNewFile(false);
   };
 
   // 处理拖拽到内容区域
@@ -296,7 +311,11 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* 工具栏 */}
-      <FinderToolbar modalId={modalId} onNewFolder={handleNewFolder} />
+      <FinderToolbar
+        modalId={modalId}
+        onNewFolder={handleNewFolder}
+        onNewFile={handleNewFile}
+      />
 
       {/* 主体区域 */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
@@ -409,7 +428,9 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
       <Modal
         title={
           renamingFile?.path === currentPath && !renamingFile?.name
-            ? "新建文件夹"
+            ? isNewFile
+              ? "新建文件"
+              : "新建文件夹"
             : "重命名"
         }
         open={renameModalOpen}
@@ -417,6 +438,7 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
         onCancel={() => {
           setRenameModalOpen(false);
           setRenamingFile(null);
+          setIsNewFile(false);
         }}
         okText="确定"
         cancelText="取消"
