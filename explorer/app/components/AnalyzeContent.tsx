@@ -372,57 +372,63 @@ const AnalyzeContent = ({ modalId }: AnalyzeContentProps) => {
         </Button>
       </div>
 
-      {/* 搜索结果选择 */}
+      {/* 搜索结果 */}
       {loading ? (
         <div className="flex justify-center py-8">
           <Spin size="large" />
         </div>
       ) : searchResults.length > 0 ? (
-        <>
-          <div className="mb-4">
-            <Text type="secondary" className="text-xs mb-2 block">
-              选择匹配结果
-            </Text>
-            <Select
-              value={selectedItem?.id}
-              onChange={handleSelectChange}
-              style={{ width: "100%" }}
-              options={searchResults.map((r) => ({
-                label: `#${r.id} - ${r.title || r.name} (${r.release_date?.slice(0, 4) || r.first_air_date?.slice(0, 4) || "未知"})`,
-                value: r.id,
-              }))}
+        <div className="mb-4">
+          <Text type="secondary" className="text-xs mb-2 block">
+            选择匹配结果
+          </Text>
+          <Select
+            value={selectedItem?.id}
+            onChange={handleSelectChange}
+            style={{ width: "100%" }}
+            popupMatchSelectWidth={false}
+            optionFilterProp="label"
+            showSearch
+            options={searchResults.map((r) => ({
+              label: `#${r.id} - ${r.title || r.name} (${r.release_date?.slice(0, 4) || r.first_air_date?.slice(0, 4) || "未知"})`,
+              value: r.id,
+            }))}
+          />
+        </div>
+      ) : null}
+
+      {/* 手动指定 TMDB ID */}
+      {!loading && (
+        <div className="mb-4">
+          <Text type="secondary" className="text-xs mb-2 block">
+            手动指定 TMDB ID
+          </Text>
+          <div className="flex gap-2">
+            <Input
+              value={manualTmdbId}
+              onChange={(e) => setManualTmdbId(e.target.value)}
+              onPressEnter={handleManualIdSearch}
+              placeholder="输入 TMDB ID"
+              style={{ flex: 1 }}
             />
+            <Button
+              icon={<SearchOutlined />}
+              onClick={handleManualIdSearch}
+              loading={detailLoading}
+            >
+              匹配
+            </Button>
           </div>
+        </div>
+      )}
 
-          <div className="mb-4">
-            <Text type="secondary" className="text-xs mb-2 block">
-              手动指定 TMDB ID
-            </Text>
-            <div className="flex gap-2">
-              <Input
-                value={manualTmdbId}
-                onChange={(e) => setManualTmdbId(e.target.value)}
-                onPressEnter={handleManualIdSearch}
-                placeholder="输入 TMDB ID"
-                style={{ flex: 1 }}
-              />
-              <Button
-                icon={<SearchOutlined />}
-                onClick={handleManualIdSearch}
-                loading={detailLoading}
-              >
-                匹配
-              </Button>
-            </div>
-          </div>
-
-          {/* 详情展示 */}
-          {detailLoading ? (
-            <div className="flex justify-center py-8">
-              <Spin size="large" />
-            </div>
-          ) : detail ? (
-            <div>
+      {/* 详情展示 */}
+      {detailLoading ? (
+        <div className="flex justify-center py-8">
+          <Spin size="large" />
+        </div>
+      ) : detail ? (
+        <div>
               {/* 海报与基本信息 */}
               <div className="flex gap-4 mb-4">
                 {detail.poster_path && (
@@ -539,13 +545,9 @@ const AnalyzeContent = ({ modalId }: AnalyzeContentProps) => {
                 </Button>
               </div>
             </div>
-          ) : (
-            <Empty description="选择结果以查看详情" />
-          )}
-        </>
-      ) : (
-        <Empty description="未找到匹配结果，请尝试重新搜索" />
-      )}
+      ) : !loading && searchResults.length === 0 ? (
+        <Empty description="未找到匹配结果，请尝试重新搜索或手动指定 TMDB ID" />
+      ) : null}
 
       {/* 整理确认弹窗 */}
       <Modal
