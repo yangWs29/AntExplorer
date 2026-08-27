@@ -32,7 +32,7 @@ const OSMenuBar = () => {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 h-7 flex items-center justify-between px-4 select-none z-[9999]"
+      className="flex-shrink-0 h-7 flex items-center justify-between px-4 select-none"
       style={{
         background: "rgba(30, 30, 30, 0.85)",
         backdropFilter: "blur(20px)",
