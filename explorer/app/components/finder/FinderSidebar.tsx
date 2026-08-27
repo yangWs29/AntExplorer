@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Tree } from "antd";
 import type { DataNode } from "antd/es/tree";
 import { FolderOutlined } from "@ant-design/icons";
@@ -18,6 +18,7 @@ const FinderSidebar = ({ modalId }: FinderSidebarProps) => {
   const [treeData, setTreeData] = useState<DataNode[]>([]);
   const [loadedKeys, setLoadedKeys] = useState<Set<string>>(new Set());
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // 加载根目录树
   useEffect(() => {
@@ -99,6 +100,23 @@ const FinderSidebar = ({ modalId }: FinderSidebarProps) => {
     }
   }, [currentPath]);
 
+  // 将选中的树节点滚动到可视区域
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // 等待树渲染完成
+    const raf = requestAnimationFrame(() => {
+      const selectedNode = container.querySelector(
+        ".ant-tree-node-selected"
+      ) as HTMLElement | null;
+      if (selectedNode) {
+        selectedNode.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [currentPath, expandedKeys]);
+
   return (
     <div className="w-52 border-r border-gray-700 flex flex-col overflow-hidden">
       {/* 快速访问 */}
@@ -114,7 +132,7 @@ const FinderSidebar = ({ modalId }: FinderSidebarProps) => {
       </div>
 
       {/* 目录树 */}
-      <div className="flex-1 overflow-y-auto px-1 py-2">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-1 py-2">
         <div className="text-xs text-gray-500 mb-1 px-2">目录</div>
         <Tree
           treeData={treeData}
