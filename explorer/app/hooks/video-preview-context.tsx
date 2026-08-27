@@ -1,8 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback } from "react";
-import { Modal, Drawer } from "antd";
-import { UnorderedListOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import { Modal } from "antd";
+import {
+  UnorderedListOutlined,
+  PlayCircleOutlined,
+  CloseOutlined,
+} from "@ant-design/icons";
 import dynamic from "next/dynamic";
 
 // 动态导入 VideoPlayer 组件，避免 SSR 问题
@@ -145,12 +149,13 @@ export const VideoPreviewProvider = ({
             padding: 0,
             minHeight: "450px",
             maxHeight: "80vh",
-            overflow: "auto",
+            overflow: "hidden",
+            position: "relative",
           },
         }}
         destroyOnHidden
       >
-        <div className="relative">
+        <div className="relative overflow-hidden">
           {currentVideo && (
             <VideoPlayer key={currentVideo} src={currentVideo} />
           )}
@@ -164,47 +169,55 @@ export const VideoPreviewProvider = ({
               <UnorderedListOutlined style={{ fontSize: 16 }} />
             </button>
           )}
+          {/* 视频列表面板 - 在 Modal 内部滑出 */}
+          <div
+            className={`absolute top-0 right-0 bottom-0 w-[360px] bg-gray-900/95 border-l border-white/10 z-20 flex flex-col transition-transform duration-300 ${
+              playlistOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+              <span className="text-white text-sm font-medium">
+                视频列表 ({videoList.length})
+              </span>
+              <button
+                className="text-gray-400 hover:text-white transition-colors"
+                onClick={() => setPlaylistOpen(false)}
+              >
+                <CloseOutlined style={{ fontSize: 14 }} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto py-2">
+              <div className="flex flex-col gap-1">
+                {videoList.map((item, index) => (
+                  <div
+                    key={item.url + index}
+                    className={`flex items-center gap-2 px-3 py-2 mx-2 rounded-md cursor-pointer transition-colors ${
+                      index === currentVideoIndex
+                        ? "bg-blue-600/20 text-blue-400"
+                        : "hover:bg-white/5 text-gray-300"
+                    }`}
+                    onClick={() => {
+                      switchVideo(index);
+                    }}
+                  >
+                    <PlayCircleOutlined
+                      style={{
+                        fontSize: 16,
+                        flexShrink: 0,
+                        color:
+                          index === currentVideoIndex ? "#1668dc" : "#9ca3af",
+                      }}
+                    />
+                    <span className="text-sm truncate" title={item.title}>
+                      {item.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </Modal>
-
-      {/* 视频列表面板 */}
-      <Drawer
-        title={`视频列表 (${videoList.length})`}
-        open={playlistOpen}
-        onClose={() => setPlaylistOpen(false)}
-        placement="right"
-        styles={{
-          wrapper: { width: 360, zIndex: 10001 },
-          body: { padding: "8px 0" },
-        }}
-      >
-        <div className="flex flex-col gap-1">
-          {videoList.map((item, index) => (
-            <div
-              key={item.url + index}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors ${
-                index === currentVideoIndex
-                  ? "bg-blue-600/20 text-blue-400"
-                  : "hover:bg-white/5 text-gray-300"
-              }`}
-              onClick={() => {
-                switchVideo(index);
-              }}
-            >
-              <PlayCircleOutlined
-                style={{
-                  fontSize: 16,
-                  flexShrink: 0,
-                  color: index === currentVideoIndex ? "#1668dc" : "#9ca3af",
-                }}
-              />
-              <span className="text-sm truncate" title={item.title}>
-                {item.title}
-              </span>
-            </div>
-          ))}
-        </div>
-      </Drawer>
     </VideoPreviewContext.Provider>
   );
 };
