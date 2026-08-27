@@ -8,6 +8,8 @@ import {
 import { Card, theme } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
 import ModalContainer from "@/app/components/ModalContainer";
+import OSMenuBar from "@/app/components/OSMenuBar";
+import WindowDock from "@/app/components/WindowDock";
 import { Content } from "antd/es/layout/layout";
 
 const Explorer = () => {
@@ -48,24 +50,28 @@ const Explorer = () => {
   } = theme.useToken();
 
   return (
-    <Content style={{ background: colorBgContainer }}>
-      <div className="min-h-screen p-4">
-        <div className="flex flex-col gap-6 w-fit">
-          {items.map((item) => (
-            <Card
-              key={item.id}
-              hoverable
-              className="text-center w-32 cursor-pointer"
-              onClick={item.onClick}
-            >
-              <div className="text-gray-200">{item.icon}</div>
-              <div className="mt-2 text-sm text-gray-300">{item.label}</div>
-            </Card>
-          ))}
+    <>
+      <OSMenuBar />
+      <Content style={{ background: colorBgContainer }}>
+        <div className="min-h-screen pt-7 pb-16 p-4">
+          <div className="flex flex-col gap-6 w-fit">
+            {items.map((item) => (
+              <Card
+                key={item.id}
+                hoverable
+                className="text-center w-32 cursor-pointer"
+                onClick={item.onClick}
+              >
+                <div className="text-gray-200">{item.icon}</div>
+                <div className="mt-2 text-sm text-gray-300">{item.label}</div>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
-      <ModalContainer />
-    </Content>
+        <ModalContainer />
+      </Content>
+      <WindowDock />
+    </>
   );
 };
 
