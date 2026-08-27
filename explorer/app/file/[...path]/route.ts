@@ -44,6 +44,8 @@ export async function GET(
       flv: "video/x-flv",
       wmv: "video/x-ms-wmv",
       m4v: "video/x-m4v",
+      // PDF
+      pdf: "application/pdf",
     };
 
     const contentType =
@@ -125,14 +127,22 @@ export async function GET(
     const nodeStream = createReadStream(filePath);
     const webStream = Readable.toWeb(nodeStream) as ReadableStream;
 
-    return new NextResponse(webStream, {
-      headers: {
-        "Content-Type": contentType,
-        "Accept-Ranges": "bytes",
-        "Content-Length": fileSize.toString(),
-        "Cache-Control": "public, max-age=31536000",
-      },
-    });
+    const headers: Record<string, string> = {
+      "Content-Type": contentType,
+      "Accept-Ranges": "bytes",
+      "Content-Length": fileSize.toString(),
+      "Cache-Control": "public, max-age=31536000",
+    };
+
+    // PDF 等可内联显示的文件类型，显式指定 inline 避免触发下载
+    if (
+      contentType.startsWith("image/") ||
+      contentType === "application/pdf"
+    ) {
+      headers["Content-Disposition"] = "inline";
+    }
+
+    return new NextResponse(webStream, { headers });
   } catch (error) {
     console.error("Error reading file:", error);
     return new NextResponse("File not found", { status: 404 });

@@ -112,6 +112,15 @@ export function isAudioFile(fileName: string): boolean {
 }
 
 /**
+ * 检查文件是否是 PDF 文件
+ * @param fileName - 文件名
+ * @returns 是否为 PDF 文件
+ */
+export function isPdfFile(fileName: string): boolean {
+  return fileName.toLowerCase().endsWith(".pdf");
+}
+
+/**
  * 检查文件是否是文本文件（可编辑）
  * @param fileName - 文件名
  * @returns 是否为文本文件

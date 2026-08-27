@@ -17,7 +17,7 @@ import {
 import { isImageFile } from "@/app/hooks/global-image-preview-context";
 import { isVideoFile } from "@/app/hooks/use-video-preview";
 import type { VideoListItem } from "@/app/hooks/video-preview-context";
-import { isTextFile } from "@/app/utils/file-utils";
+import { isTextFile, isPdfFile } from "@/app/utils/file-utils";
 import { useGlobalImagePreview } from "@/app/hooks/global-image-preview-context";
 import { useVideoPreview } from "@/app/hooks/video-preview-context";
 import { toFileUrl } from "@/app/utils/file-utils";
@@ -198,6 +198,8 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
         }));
         const videoUrl = toFileUrl(item.path);
         openVideoPreview(videoUrl, item.name, videoList);
+      } else if (isPdfFile(item.name)) {
+        window.open(toFileUrl(item.path), "_blank");
       } else if (isTextFile(item.name)) {
         openTextEditor(item.path, item.name);
       } else {
