@@ -2,6 +2,10 @@
 
 import { useEffect, useCallback, useState } from "react";
 import { App, Modal, Input, Descriptions, Spin } from "antd";
+import {
+  readTextFileAction,
+  writeTextFileAction,
+} from "@/app/actions/file-actions";
 import { useFinderScope } from "@/app/hooks/use-finder-scope";
 import { useFinderStore } from "@/app/store/finder-store";
 import {
@@ -12,6 +16,7 @@ import {
 } from "@/app/actions/file-actions";
 import { isImageFile } from "@/app/hooks/global-image-preview-context";
 import { isVideoFile } from "@/app/hooks/use-video-preview";
+import { isTextFile } from "@/app/utils/file-utils";
 import { useGlobalImagePreview } from "@/app/hooks/global-image-preview-context";
 import { useVideoPreview } from "@/app/hooks/video-preview-context";
 import { toFileUrl } from "@/app/utils/file-utils";
@@ -73,6 +78,12 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
   const [renameValue, setRenameValue] = useState("");
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [textEditorOpen, setTextEditorOpen] = useState(false);
+  const [textEditorPath, setTextEditorPath] = useState("");
+  const [textEditorName, setTextEditorName] = useState("");
+  const [textEditorContent, setTextEditorContent] = useState("");
+  const [textEditorLoading, setTextEditorLoading] = useState(false);
+  const [textEditorSaving, setTextEditorSaving] = useState(false);
   const [detailStats, setDetailStats] = useState<{
     name: string;
     path: string;
@@ -120,6 +131,49 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
     }
   }, [renamingFile]);
 
+  // 打开文本编辑器
+  const openTextEditor = async (filePath: string, fileName: string) => {
+    setTextEditorPath(filePath);
+    setTextEditorName(fileName);
+    setTextEditorOpen(true);
+    setTextEditorLoading(true);
+    try {
+      const { content } = await readTextFileAction(filePath);
+      setTextEditorContent(content);
+    } catch {
+      message.error("读取文件失败");
+      setTextEditorOpen(false);
+    } finally {
+      setTextEditorLoading(false);
+    }
+  };
+
+  // 保存文本文件
+  const handleSaveTextFile = async () => {
+    setTextEditorSaving(true);
+    try {
+      await writeTextFileAction(textEditorPath, textEditorContent);
+      message.success("保存成功");
+      setTextEditorOpen(false);
+    } catch {
+      message.error("保存失败");
+    } finally {
+      setTextEditorSaving(false);
+    }
+  };
+
+  // 监听右键菜单触发的编辑事件
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { filePath, fileName } = (e as CustomEvent).detail;
+      if (filePath && fileName) {
+        openTextEditor(filePath, fileName);
+      }
+    };
+    window.addEventListener("finder-edit-text-file", handler);
+    return () => window.removeEventListener("finder-edit-text-file", handler);
+  }, []);
+
   // 打开文件/文件夹
   const handleOpenItem = useCallback(
     (item: { path: string; name: string; isDirectory: boolean }) => {
@@ -135,6 +189,8 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
       } else if (isVideoFile(item.name)) {
         const videoUrl = toFileUrl(item.path);
         openVideoPreview(videoUrl, item.name);
+      } else if (isTextFile(item.name)) {
+        openTextEditor(item.path, item.name);
       } else {
         window.open(toFileUrl(item.path), "_blank");
       }
@@ -351,6 +407,32 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
           onPressEnter={handleRenameConfirm}
           autoFocus
         />
+      </Modal>
+
+      {/* 文本文件编辑器弹窗 */}
+      <Modal
+        title={`编辑 - ${textEditorName}`}
+        open={textEditorOpen}
+        onOk={handleSaveTextFile}
+        onCancel={() => setTextEditorOpen(false)}
+        okText="保存"
+        cancelText="取消"
+        confirmLoading={textEditorSaving}
+        width={800}
+        styles={{ body: { padding: "12px" } }}
+      >
+        {textEditorLoading ? (
+          <div className="flex justify-center py-16">
+            <Spin />
+          </div>
+        ) : (
+          <Input.TextArea
+            value={textEditorContent}
+            onChange={(e) => setTextEditorContent(e.target.value)}
+            autoSize={{ minRows: 16, maxRows: 28 }}
+            style={{ fontFamily: "monospace", fontSize: 13 }}
+          />
+        )}
       </Modal>
     </div>
   );

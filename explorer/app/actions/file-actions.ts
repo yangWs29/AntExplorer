@@ -1,6 +1,6 @@
 "use server";
 
-import { readdir, stat, rename, copyFile, rm, link, mkdir } from "fs/promises";
+import { readdir, stat, rename, copyFile, rm, link, mkdir, readFile, writeFile } from "fs/promises";
 import { join, basename, extname } from "path";
 import { FileItem } from "@/app/store/explorer-modal-store";
 import Seven from "node-7z";
@@ -471,6 +471,33 @@ export async function getFileStatsAction(filePath: string): Promise<{
     };
   } catch (error) {
     console.error("获取文件统计信息失败:", error);
+    throw error;
+  }
+}
+
+// 读取文本文件内容
+export async function readTextFileAction(
+  filePath: string,
+): Promise<{ content: string }> {
+  try {
+    const content = await readFile(filePath, "utf-8");
+    return { content };
+  } catch (error) {
+    console.error("读取文件失败:", error);
+    throw error;
+  }
+}
+
+// 写入文本文件内容
+export async function writeTextFileAction(
+  filePath: string,
+  content: string,
+): Promise<{ success: boolean }> {
+  try {
+    await writeFile(filePath, content, "utf-8");
+    return { success: true };
+  } catch (error) {
+    console.error("保存文件失败:", error);
     throw error;
   }
 }

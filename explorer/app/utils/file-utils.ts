@@ -92,6 +92,27 @@ export function parseVideoFileName(fileName: string): {
 }
 
 /**
+ * 检查文件是否是文本文件（可编辑）
+ * @param fileName - 文件名
+ * @returns 是否为文本文件
+ */
+export function isTextFile(fileName: string): boolean {
+  const textExtensions = [
+    ".txt", ".md", ".json", ".js", ".jsx", ".ts", ".tsx",
+    ".html", ".htm", ".css", ".scss", ".sass", ".less",
+    ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf",
+    ".sh", ".bash", ".zsh", ".fish",
+    ".py", ".rb", ".php", ".java", ".c", ".cpp", ".h", ".hpp",
+    ".go", ".rs", ".swift", ".kt", ".scala", ".lua",
+    ".sql", ".graphql",
+    ".env", ".gitignore", ".dockerignore", ".editorconfig",
+    ".log", ".csv", ".svg",
+  ];
+  const lowerName = fileName.toLowerCase();
+  return textExtensions.some((ext) => lowerName.endsWith(ext));
+}
+
+/**
  * 将完整路径转换为相对路径（隐藏根目录）
  * @param fullPath - 完整路径
  * @param rootDir - 根目录路径

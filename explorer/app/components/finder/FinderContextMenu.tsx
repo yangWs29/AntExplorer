@@ -26,7 +26,7 @@ import {
   getFileStatsAction,
   createDirectoryAction,
 } from "@/app/actions/file-actions";
-import { isArchiveFile, isVideoFile } from "@/app/utils/file-utils";
+import { isArchiveFile, isVideoFile, isTextFile } from "@/app/utils/file-utils";
 
 interface FinderContextMenuProps {
   modalId: string;
@@ -57,6 +57,17 @@ const FinderContextMenu = ({
     setRenamingFile,
   } = useFinderScope(modalId);
   const { openAnalyzeModal } = useModalStore();
+
+  // 编辑文本文件
+  const handleEditTextFile = () => {
+    if (!filePath || !fileName) return;
+    // 触发自定义事件，由 FinderContent 监听处理
+    window.dispatchEvent(
+      new CustomEvent("finder-edit-text-file", {
+        detail: { filePath, fileName },
+      }),
+    );
+  };
 
   // 复制
   const handleCopy = () => {
@@ -199,6 +210,17 @@ const FinderContextMenu = ({
 
   // 构建文件右键菜单
   const fileMenuItems: MenuProps["items"] = [
+    ...(fileName && isTextFile(fileName)
+      ? [
+          {
+            key: "edit",
+            label: "编辑",
+            icon: <EditOutlined />,
+            onClick: handleEditTextFile,
+          },
+          { type: "divider" as const },
+        ]
+      : []),
     {
       key: "copy",
       label: "复制",
