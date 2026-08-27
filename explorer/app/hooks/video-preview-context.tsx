@@ -26,7 +26,11 @@ interface VideoPreviewContextType {
   videoModalVisible: boolean;
   videoList: VideoListItem[];
   currentVideoIndex: number;
-  openVideoPreview: (videoUrl: string, title: string, videoList?: VideoListItem[]) => void;
+  openVideoPreview: (
+    videoUrl: string,
+    title: string,
+    videoList?: VideoListItem[],
+  ) => void;
   closeVideoPreview: () => void;
   switchVideo: (index: number) => void;
 }
@@ -147,7 +151,9 @@ export const VideoPreviewProvider = ({
         destroyOnHidden
       >
         <div className="relative">
-          {currentVideo && <VideoPlayer key={currentVideo} src={currentVideo} />}
+          {currentVideo && (
+            <VideoPlayer key={currentVideo} src={currentVideo} />
+          )}
           {/* 播放列表按钮 */}
           {hasPlaylist && (
             <button
@@ -167,9 +173,8 @@ export const VideoPreviewProvider = ({
         open={playlistOpen}
         onClose={() => setPlaylistOpen(false)}
         placement="right"
-        width={360}
-        zIndex={10001}
         styles={{
+          wrapper: { width: 360, zIndex: 10001 },
           body: { padding: "8px 0" },
         }}
       >
@@ -193,10 +198,7 @@ export const VideoPreviewProvider = ({
                   color: index === currentVideoIndex ? "#1668dc" : "#9ca3af",
                 }}
               />
-              <span
-                className="text-sm truncate"
-                title={item.title}
-              >
+              <span className="text-sm truncate" title={item.title}>
                 {item.title}
               </span>
             </div>
