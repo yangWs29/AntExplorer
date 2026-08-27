@@ -33,6 +33,7 @@ export function useFinderScope(modalId: string) {
     columnSelections: {},
     detailFile: null,
     renamingFile: null,
+    iconColumns: 8,
   };
 
   const navigateTo = useCallback(
@@ -111,6 +112,10 @@ export function useFinderScope(modalId: string) {
       store.setRenamingFile(modalId, file),
     [modalId, store.setRenamingFile],
   );
+  const setIconColumns = useCallback(
+    (columns: number) => store.setIconColumns(modalId, columns),
+    [modalId, store.setIconColumns],
+  );
 
   return useMemo(
     () => ({
@@ -135,6 +140,7 @@ export function useFinderScope(modalId: string) {
       resetColumnView,
       setDetailFile,
       setRenamingFile,
+      setIconColumns,
     }),
     [
       state,
@@ -158,6 +164,7 @@ export function useFinderScope(modalId: string) {
       resetColumnView,
       setDetailFile,
       setRenamingFile,
+      setIconColumns,
     ],
   );
 }

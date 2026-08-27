@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import { App, Modal, Input, Descriptions, Spin } from "antd";
+import { App, Modal, Input, Descriptions, Spin, Slider } from "antd";
 import {
   readTextFileAction,
   writeTextFileAction,
@@ -45,12 +45,14 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
     selectedFiles,
     detailFile,
     renamingFile,
+    iconColumns,
     navigateTo,
     setFileList,
     setLoading,
     clearSelection,
     setDetailFile,
     setRenamingFile,
+    setIconColumns,
   } = useFinderScope(modalId);
 
   // 挂载时初始化该 modalId 的 finder 状态（每个窗口独立）
@@ -322,13 +324,32 @@ const FinderContent = ({ modalId }: FinderContentProps) => {
             )}
 
             {/* 底部状态栏 */}
-            <div className="px-3 py-1.5 border-t border-gray-700 text-xs text-gray-500 flex items-center justify-between">
-              <span>
+            <div className="px-3 py-1.5 border-t border-gray-700 text-xs text-gray-500 flex items-center justify-between gap-4">
+              <span className="flex-shrink-0">
                 {fileList.length} 个项目
                 {selectedFiles.length > 0 &&
                   `，已选中 ${selectedFiles.length} 个`}
               </span>
-              <span>{currentPath}</span>
+              {viewMode === "icon" && (
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="flex-shrink-0">列数:</span>
+                  <Slider
+                    min={1}
+                    max={12}
+                    value={iconColumns}
+                    onChange={setIconColumns}
+                    className="w-40"
+                    styles={{
+                      track: { background: "#1668dc" },
+                      rail: { background: "#424242" },
+                    }}
+                  />
+                  <span className="w-6 text-center flex-shrink-0">
+                    {iconColumns}
+                  </span>
+                </div>
+              )}
+              <span className="flex-shrink-0">{currentPath}</span>
             </div>
           </div>
         </FinderContextMenu>

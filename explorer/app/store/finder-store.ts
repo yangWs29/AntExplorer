@@ -43,6 +43,8 @@ export interface FinderModalState {
   detailFile: FileStats | null;
   // 重命名
   renamingFile: { path: string; name: string } | null;
+  // icon 视图列数
+  iconColumns: number;
 }
 
 /** Store 内部结构：按 modalId 隔离 */
@@ -89,6 +91,8 @@ interface FinderStore {
     modalId: string,
     file: { path: string; name: string } | null,
   ) => void;
+  // Actions - icon 视图列数
+  setIconColumns: (modalId: string, columns: number) => void;
   // 初始化（挂载时设置初始路径）
   initModal: (modalId: string, initialPath: string) => void;
 }
@@ -111,6 +115,7 @@ function getOrCreate(state: FinderStore, modalId: string): FinderModalState {
       columnSelections: {},
       detailFile: null,
       renamingFile: null,
+      iconColumns: 8,
     }
   );
 }
@@ -140,6 +145,7 @@ export const useFinderStore = create<FinderStore>((set, get) => ({
             columnSelections: {},
             detailFile: null,
             renamingFile: null,
+            iconColumns: 8,
           },
         },
       };
@@ -392,6 +398,12 @@ export const useFinderStore = create<FinderStore>((set, get) => ({
     set((state) => {
       const m = getOrCreate(state, modalId);
       return { modals: { ...state.modals, [modalId]: { ...m, renamingFile: file } } };
+    }),
+
+  setIconColumns: (modalId, columns) =>
+    set((state) => {
+      const m = getOrCreate(state, modalId);
+      return { modals: { ...state.modals, [modalId]: { ...m, iconColumns: columns } } };
     }),
 }));
 

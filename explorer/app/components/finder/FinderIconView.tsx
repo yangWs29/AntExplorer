@@ -282,7 +282,7 @@ const IconItem = memo(
 /* ─── 主组件 ─── */
 
 const FinderIconView = ({ modalId, onOpenItem }: FinderIconViewProps) => {
-  const { fileList, loading, selectedFiles, selectFile, clearSelection } =
+  const { fileList, loading, selectedFiles, selectFile, clearSelection, iconColumns } =
     useFinderScope(modalId);
 
   // O(1) 查找选中状态
@@ -339,7 +339,10 @@ const FinderIconView = ({ modalId, onOpenItem }: FinderIconViewProps) => {
       className="flex-1 min-h-0 overflow-y-auto p-4"
       onClick={clearSelection}
     >
-      <div className="grid grid-cols-6 gap-4">
+      <div
+        className="grid gap-4"
+        style={{ gridTemplateColumns: `repeat(${iconColumns}, minmax(0, 1fr))` }}
+      >
         {fileList.map((item, index) => (
           <IconItem
             key={item.path}
