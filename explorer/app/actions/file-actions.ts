@@ -6,12 +6,8 @@ import { FileItem } from "@/app/store/explorer-modal-store";
 import Seven from "node-7z";
 import sevenBin from "7zip-bin-full";
 
-// 获取项目根目录（Next.js 会自动设置 PROJECT_CWD）
-const projectRoot = process.cwd();
-
-// 构建正确的 7zip 二进制文件路径
-// 将 /ROOT/... 替换为实际的项目路径
-const binPath = sevenBin.path7z.replace("/ROOT", projectRoot);
+// 7zip 二进制文件路径（由 7zip-bin-full 根据平台自动解析）
+const binPath = sevenBin.path7z;
 
 // 递归计算文件夹大小
 async function calculateDirSize(dirPath: string): Promise<number> {
