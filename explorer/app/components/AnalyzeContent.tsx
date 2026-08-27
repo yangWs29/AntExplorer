@@ -331,10 +331,7 @@ const AnalyzeContent = ({ modalId }: AnalyzeContentProps) => {
   }
 
   return (
-    <div
-      className="p-4"
-      style={{ flex: 1, minHeight: 0, overflowY: "auto" }}
-    >
+    <div className="p-4" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
       {/* 文件信息 */}
       <div className="mb-4">
         <Text type="secondary" className="text-xs">
@@ -387,7 +384,6 @@ const AnalyzeContent = ({ modalId }: AnalyzeContentProps) => {
             onChange={handleSelectChange}
             style={{ width: "100%" }}
             popupMatchSelectWidth={false}
-            optionFilterProp="label"
             showSearch
             options={searchResults.map((r) => ({
               label: `#${r.id} - ${r.title || r.name} (${r.release_date?.slice(0, 4) || r.first_air_date?.slice(0, 4) || "未知"})`,
@@ -429,122 +425,116 @@ const AnalyzeContent = ({ modalId }: AnalyzeContentProps) => {
         </div>
       ) : detail ? (
         <div>
-              {/* 海报与基本信息 */}
-              <div className="flex gap-4 mb-4">
-                {detail.poster_path && (
-                  <Image
-                    src={`${TMDB_IMAGE_BASE}/w200${detail.poster_path}`}
-                    alt={detail.title || detail.name}
-                    width={120}
-                    style={{ borderRadius: 8 }}
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <Title level={5} className="mt-0 mb-1">
-                    <a
-                      href={`https://www.themoviedb.org/${selectedItem?.media_type || mediaType}/${detail.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-blue-500 transition-colors"
-                    >
-                      {detail.title || detail.name}
-                    </a>
-                  </Title>
-                  {(detail.original_title || detail.original_name) && (
-                    <Text type="secondary" className="text-xs block mb-2">
-                      {detail.original_title || detail.original_name}
-                    </Text>
-                  )}
-                  {detail.tagline && (
-                    <Text
-                      type="secondary"
-                      italic
-                      className="text-xs block mb-2"
-                    >
-                      {detail.tagline}
-                    </Text>
-                  )}
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {detail.genres?.map((g) => (
-                      <Tag key={g.id} color="processing">
-                        {g.name}
-                      </Tag>
-                    ))}
-                  </div>
-                  {detail.vote_average != null && detail.vote_average > 0 && (
-                    <Tag color="gold">⭐ {detail.vote_average.toFixed(1)}</Tag>
-                  )}
-                </div>
-              </div>
-
-              {/* 详细描述 */}
-              <Descriptions
-                column={1}
-                size="small"
-                styles={{
-                  label: { width: 80, fontWeight: 500 },
-                }}
-              >
-                {(detail.release_date || detail.first_air_date) && (
-                  <Descriptions.Item label="上映日期">
-                    {detail.release_date || detail.first_air_date}
-                  </Descriptions.Item>
-                )}
-                {detail.runtime != null && (
-                  <Descriptions.Item label="片长">
-                    {detail.runtime} 分钟
-                  </Descriptions.Item>
-                )}
-                {detail.number_of_seasons != null && (
-                  <Descriptions.Item label="季数">
-                    {detail.number_of_seasons} 季
-                  </Descriptions.Item>
-                )}
-                {detail.number_of_episodes != null && (
-                  <Descriptions.Item label="集数">
-                    {detail.number_of_episodes} 集
-                  </Descriptions.Item>
-                )}
-                {detail.status && (
-                  <Descriptions.Item label="状态">
-                    {detail.status}
-                  </Descriptions.Item>
-                )}
-                {detail.production_companies &&
-                  detail.production_companies.length > 0 && (
-                    <Descriptions.Item label="制作公司">
-                      {detail.production_companies
-                        .map((c) => c.name)
-                        .join(", ")}
-                    </Descriptions.Item>
-                  )}
-              </Descriptions>
-
-              {detail.overview && (
-                <div className="mt-3">
-                  <Text type="secondary" className="text-xs mb-1 block">
-                    简介
-                  </Text>
-                  <Paragraph
-                    className="text-sm"
-                    ellipsis={{ rows: 4, expandable: true, symbol: "展开" }}
-                  >
-                    {detail.overview}
-                  </Paragraph>
-                </div>
-              )}
-
-              {/* 整理按钮 */}
-              <div className="mt-4 flex justify-end">
-                <Button
-                  type="primary"
-                  icon={<FolderOpenOutlined />}
-                  onClick={handleComputeOrganize}
+          {/* 海报与基本信息 */}
+          <div className="flex gap-4 mb-4">
+            {detail.poster_path && (
+              <Image
+                src={`${TMDB_IMAGE_BASE}/w200${detail.poster_path}`}
+                alt={detail.title || detail.name}
+                width={120}
+                style={{ borderRadius: 8 }}
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <Title level={5} className="mt-0 mb-1">
+                <a
+                  href={`https://www.themoviedb.org/${selectedItem?.media_type || mediaType}/${detail.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-blue-500 transition-colors"
                 >
-                  整理到媒体库
-                </Button>
+                  {detail.title || detail.name}
+                </a>
+              </Title>
+              {(detail.original_title || detail.original_name) && (
+                <Text type="secondary" className="text-xs block mb-2">
+                  {detail.original_title || detail.original_name}
+                </Text>
+              )}
+              {detail.tagline && (
+                <Text type="secondary" italic className="text-xs block mb-2">
+                  {detail.tagline}
+                </Text>
+              )}
+              <div className="flex flex-wrap gap-1 mb-2">
+                {detail.genres?.map((g) => (
+                  <Tag key={g.id} color="processing">
+                    {g.name}
+                  </Tag>
+                ))}
               </div>
+              {detail.vote_average != null && detail.vote_average > 0 && (
+                <Tag color="gold">⭐ {detail.vote_average.toFixed(1)}</Tag>
+              )}
             </div>
+          </div>
+
+          {/* 详细描述 */}
+          <Descriptions
+            column={1}
+            size="small"
+            styles={{
+              label: { width: 80, fontWeight: 500 },
+            }}
+          >
+            {(detail.release_date || detail.first_air_date) && (
+              <Descriptions.Item label="上映日期">
+                {detail.release_date || detail.first_air_date}
+              </Descriptions.Item>
+            )}
+            {detail.runtime != null && (
+              <Descriptions.Item label="片长">
+                {detail.runtime} 分钟
+              </Descriptions.Item>
+            )}
+            {detail.number_of_seasons != null && (
+              <Descriptions.Item label="季数">
+                {detail.number_of_seasons} 季
+              </Descriptions.Item>
+            )}
+            {detail.number_of_episodes != null && (
+              <Descriptions.Item label="集数">
+                {detail.number_of_episodes} 集
+              </Descriptions.Item>
+            )}
+            {detail.status && (
+              <Descriptions.Item label="状态">
+                {detail.status}
+              </Descriptions.Item>
+            )}
+            {detail.production_companies &&
+              detail.production_companies.length > 0 && (
+                <Descriptions.Item label="制作公司">
+                  {detail.production_companies.map((c) => c.name).join(", ")}
+                </Descriptions.Item>
+              )}
+          </Descriptions>
+
+          {detail.overview && (
+            <div className="mt-3">
+              <Text type="secondary" className="text-xs mb-1 block">
+                简介
+              </Text>
+              <Paragraph
+                className="text-sm"
+                ellipsis={{ rows: 4, expandable: true, symbol: "展开" }}
+              >
+                {detail.overview}
+              </Paragraph>
+            </div>
+          )}
+
+          {/* 整理按钮 */}
+          <div className="mt-4 flex justify-end">
+            <Button
+              type="primary"
+              icon={<FolderOpenOutlined />}
+              onClick={handleComputeOrganize}
+            >
+              整理到媒体库
+            </Button>
+          </div>
+        </div>
       ) : !loading && searchResults.length === 0 ? (
         <Empty description="未找到匹配结果，请尝试重新搜索或手动指定 TMDB ID" />
       ) : null}
