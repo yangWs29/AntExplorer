@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Form, Input, Button, App } from "antd";
 import type { TextAreaRef } from "antd/es/input/TextArea";
 import { useModalStore } from "@/app/store/explorer-modal-store";
-import { extractArchive, readDirectory } from "@/app/actions/file-actions";
+import { extractArchive } from "@/app/actions/file-actions";
 import DirectoryTreeSelector from "./DirectoryTreeSelector";
 import { getDisplayPath, getFullPath } from "@/app/utils/file-utils";
 
@@ -16,7 +16,7 @@ interface ExtractContentProps {
 
 const ExtractContent = ({ modalId }: ExtractContentProps) => {
   const { message } = App.useApp();
-  const { getModalById, closeModal, setModalLoading, setModalFileList } =
+  const { getModalById, closeModal, setModalLoading } =
     useModalStore();
   const [form] = Form.useForm();
   const [logs, setLogs] = useState<string[]>([]);
@@ -82,18 +82,6 @@ const ExtractContent = ({ modalId }: ExtractContentProps) => {
       );
 
       addLog(`解压缩成功: ${result.extractPath}`);
-
-      // 查找并刷新所有匹配的 explorer 窗口
-      const allModals = useModalStore.getState().modals;
-      allModals.forEach((m) => {
-        if (m.type === "explorer" && m.path === baseTargetDir) {
-          readDirectory(baseTargetDir).then((files) => {
-            setModalFileList(m.id, files);
-          });
-        }
-      });
-
-      addLog("文件列表已刷新");
       message.success("解压缩成功");
     } catch (error: any) {
       addLog(`错误: ${error.message || "解压缩失败"}`);

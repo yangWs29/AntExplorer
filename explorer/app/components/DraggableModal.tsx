@@ -3,19 +3,16 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import {
   CloseOutlined,
-  ArrowLeftOutlined,
   ExpandOutlined,
   ColumnWidthOutlined,
   MinusSquareOutlined,
 } from "@ant-design/icons";
-import { Card, Button, Breadcrumb, Dropdown } from "antd";
+import { Card, Button, Dropdown } from "antd";
 import type { MenuProps } from "antd";
 import {
   useModalStore,
   type ModalInstance,
 } from "@/app/store/explorer-modal-store";
-import FileList from "./FileList";
-import ViewModeToggle from "./ViewModeToggle";
 import FileDetailContent from "./FileDetailContent";
 import CompressContent from "./CompressContent";
 import ExtractContent from "./ExtractContent";
@@ -33,7 +30,7 @@ type WindowSize = "default" | "fullscreen" | "half-width";
 type ResizeDir = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw" | null;
 
 const DraggableModal = memo(({ modal }: DraggableModalProps) => {
-  const { closeModal, bringToFront, goBack, canGoBack } = useModalStore();
+  const { closeModal, bringToFront } = useModalStore();
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [windowSize, setWindowSize] = useState<WindowSize>("default");
@@ -164,51 +161,6 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
     };
   }, [resizeDir]);
 
-  // 生成面包屑路径（使用 useMemo 缓存）
-  const breadcrumbItems = React.useMemo(() => {
-    return modal.history.slice(0, modal.historyIndex + 1).map((path, index) => {
-      const folderName = path.split("/").pop() || path;
-      const isCurrentPath = index === modal.historyIndex;
-
-      return {
-        title: isCurrentPath ? (
-          <span className="text-gray-500">{folderName}</span>
-        ) : (
-          <span
-            className="cursor-pointer hover:text-blue-500 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              goBackToPath(modal.id, path, index);
-            }}
-          >
-            {folderName}
-          </span>
-        ),
-        key: path,
-      };
-    });
-  }, [modal.history, modal.historyIndex, modal.id]);
-
-  // 优化的面包屑导航函数
-  const goBackToPath = useCallback(
-    (modalId: string, path: string, index: number) => {
-      const targetFolderName = path.split("/").pop() || path;
-
-      useModalStore.setState((state) => ({
-        modals: state.modals.map((m) => {
-          if (m.id !== modalId) return m;
-          return {
-            ...m,
-            path: path,
-            title: targetFolderName,
-            historyIndex: index,
-          };
-        }),
-      }));
-    },
-    [],
-  );
-
   // 窗口大小切换菜单
   const windowSizeMenu: MenuProps["items"] = [
     {
@@ -329,24 +281,7 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
           onMouseDown={handleMouseDown}
         >
           <div className="flex items-center gap-2 flex-1 min-w-0 cursor-default">
-            {modal.type === "explorer" ? (
-              <>
-                {canGoBack(modal.id) && (
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<ArrowLeftOutlined />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goBack(modal.id);
-                    }}
-                  />
-                )}
-                <Breadcrumb items={breadcrumbItems} className="flex-1" />
-              </>
-            ) : (
-              <span className="flex-1 truncate">{modal.title}</span>
-            )}
+            <span className="flex-1 truncate">{modal.title}</span>
           </div>
           <div className="flex items-center gap-0.5">
             <Dropdown
@@ -381,15 +316,8 @@ const DraggableModal = memo(({ modal }: DraggableModalProps) => {
           </div>
         </div>
       }
-      actions={
-        modal.type === "explorer"
-          ? [<ViewModeToggle key="view-mode" modalId={modal.id} />]
-          : undefined
-      }
     >
-      {modal.type === "explorer" ? (
-        <FileList modalId={modal.id} initialPath={modal.path} />
-      ) : modal.type === "file-detail" ? (
+      {modal.type === "file-detail" ? (
         modal.fileDetail && (
           <FileDetailContent modalId={modal.id} fileDetail={modal.fileDetail} />
         )

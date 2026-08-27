@@ -3,7 +3,7 @@
 import React from "react";
 import { Form, Input, Select, Button, App } from "antd";
 import { useModalStore } from "@/app/store/explorer-modal-store";
-import { compressFile, readDirectory } from "@/app/actions/file-actions";
+import { compressFile } from "@/app/actions/file-actions";
 import DirectoryTreeSelector from "./DirectoryTreeSelector";
 import { getDisplayPath, getFullPath } from "@/app/utils/file-utils";
 
@@ -13,14 +13,14 @@ interface CompressContentProps {
 
 const CompressContent = ({ modalId }: CompressContentProps) => {
   const { message } = App.useApp();
-  const { getModalById, closeModal, setModalLoading, setModalFileList } =
+  const { getModalById, closeModal, setModalLoading } =
     useModalStore();
   const [form] = Form.useForm();
 
   const modal = getModalById(modalId);
   const compressData = modal?.compressData;
 
-  // 获取当前 explorer 的目录路径
+  // 获取当前目录路径
   const currentDirPath = compressData?.sourcePath
     ? compressData.sourcePath.substring(
         0,
@@ -75,15 +75,7 @@ const CompressContent = ({ modalId }: CompressContentProps) => {
       const archiveName = `${values.archiveName}.${values.format}`;
       await compressFile(compressData.sourcePath, archiveName, targetDirPath);
 
-      // 刷新目标目录的文件列表
-      const allModals = useModalStore.getState().modals;
-      allModals.forEach((modal) => {
-        if (modal.type === "explorer" && modal.path === targetDirPath) {
-          readDirectory(targetDirPath).then((files) => {
-            setModalFileList(modal.id, files);
-          });
-        }
-      });
+      // 刷新目标目录的文件列表（无 explorer 类型窗口需要刷新）
 
       message.success(`压缩成功: ${archiveName}`);
       closeModal(modalId);

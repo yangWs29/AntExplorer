@@ -11,7 +11,8 @@ import ModalContainer from "@/app/components/ModalContainer";
 import { Content } from "antd/es/layout/layout";
 
 const Explorer = () => {
-  const { openModal, openMediaManagementModal, openSystemModal, openFinderModal } = useModalStore();
+  const { openMediaManagementModal, openSystemModal, openFinderModal } =
+    useModalStore();
 
   const items = [
     {
@@ -20,14 +21,6 @@ const Explorer = () => {
       label: "System",
       onClick: () => {
         openSystemModal();
-      },
-    },
-    {
-      id: "explorer",
-      icon: <FolderOutlined style={{ fontSize: 48 }} />,
-      label: "Explorer",
-      onClick: () => {
-        openModal("Explorer", process.env.NEXT_PUBLIC_DIR || "/");
       },
     },
     {

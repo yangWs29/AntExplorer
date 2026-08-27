@@ -8,13 +8,7 @@ export interface FileItem {
   modifiedTime?: Date; // 修改时间
 }
 
-export type ViewMode = "list" | "icon";
-
-export type SortField = "name" | "size" | "modifiedTime";
-export type SortOrder = "asc" | "desc";
-
 export type ModalType =
-  | "explorer"
   | "file-detail"
   | "compress"
   | "extract"
@@ -34,10 +28,6 @@ export interface ModalInstance {
   historyIndex: number; // 当前历史索引
   fileList: FileItem[]; // 文件列表
   loading: boolean; // 加载状态
-  viewMode: ViewMode; // 视图模式
-  iconColumns: 1 | 2 | 3 | 4; // 图标模式列数
-  sortField: SortField; // 排序字段
-  sortOrder: SortOrder; // 排序方向
   fileDetail?: FileDetailData; // 文件详情数据
   compressData?: CompressData; // 压缩配置数据
   extractData?: ExtractData; // 解压缩配置数据
@@ -83,8 +73,6 @@ export interface MediaManagementData {
 interface ExplorerModalStore {
   modals: ModalInstance[];
   nextZIndex: number;
-  copiedFiles: string[]; // 全局复制的文件列表
-  openModal: (title: string, path: string) => void;
   openFileDetailModal: (fileDetail: FileDetailData) => void;
   openCompressModal: (compressData: CompressData) => void;
   openExtractModal: (extractData: ExtractData) => void;
@@ -95,46 +83,15 @@ interface ExplorerModalStore {
   openFinderModal: (path: string) => void;
   closeModal: (id: string) => void;
   bringToFront: (id: string) => void;
-  navigateToPath: (id: string, path: string, title?: string) => void;
   goBack: (id: string) => void;
   canGoBack: (id: string) => boolean;
-  setModalFileList: (id: string, files: FileItem[]) => void;
   setModalLoading: (id: string, loading: boolean) => void;
   getModalById: (id: string) => ModalInstance | undefined;
-  setModalViewMode: (id: string, mode: ViewMode) => void;
-  setModalIconColumns: (id: string, columns: 1 | 2 | 3 | 4) => void;
-  setModalSort: (id: string, field: SortField, order: SortOrder) => void;
-  setCopiedFiles: (files: string[]) => void;
-  clearCopiedFiles: () => void;
 }
 
 export const useModalStore = create<ExplorerModalStore>((set, get) => ({
   modals: [],
   nextZIndex: 100,
-  copiedFiles: [],
-  openModal: (title, path) =>
-    set((state) => {
-      const id = `modal-${Date.now()}-${Math.random()}`;
-      const newModal: ModalInstance = {
-        id,
-        type: "explorer",
-        title,
-        path,
-        zIndex: state.nextZIndex,
-        history: [path],
-        historyIndex: 0,
-        fileList: [],
-        loading: true,
-        viewMode: "icon",
-        iconColumns: 4,
-        sortField: "name",
-        sortOrder: "asc",
-      };
-      return {
-        modals: [...state.modals, newModal],
-        nextZIndex: state.nextZIndex + 1,
-      };
-    }),
   openFileDetailModal: (fileDetail) =>
     set((state) => {
       const id = `detail-${Date.now()}-${Math.random()}`;
@@ -148,10 +105,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         historyIndex: 0,
         fileList: [],
         loading: false,
-        viewMode: "icon",
-        iconColumns: 4,
-        sortField: "name",
-        sortOrder: "asc",
         fileDetail,
       };
       return {
@@ -172,10 +125,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         historyIndex: 0,
         fileList: [],
         loading: false,
-        viewMode: "icon",
-        iconColumns: 4,
-        sortField: "name",
-        sortOrder: "asc",
         compressData,
       };
       return {
@@ -196,10 +145,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         historyIndex: 0,
         fileList: [],
         loading: false,
-        viewMode: "icon",
-        iconColumns: 4,
-        sortField: "name",
-        sortOrder: "asc",
         extractData,
       };
       return {
@@ -220,10 +165,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         historyIndex: 0,
         fileList: [],
         loading: false,
-        viewMode: "icon",
-        iconColumns: 4,
-        sortField: "name",
-        sortOrder: "asc",
         analyzeData,
       };
       return {
@@ -244,10 +185,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         historyIndex: 0,
         fileList: [],
         loading: false,
-        viewMode: "icon",
-        iconColumns: 4,
-        sortField: "name",
-        sortOrder: "asc",
         batchAnalyzeData,
       };
       return {
@@ -268,10 +205,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         historyIndex: 0,
         fileList: [],
         loading: false,
-        viewMode: "icon",
-        iconColumns: 4,
-        sortField: "name",
-        sortOrder: "asc",
         mediaManagementData,
       };
       return {
@@ -292,10 +225,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         historyIndex: 0,
         fileList: [],
         loading: false,
-        viewMode: "icon",
-        iconColumns: 4,
-        sortField: "name",
-        sortOrder: "asc",
       };
       return {
         modals: [...state.modals, newModal],
@@ -315,10 +244,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         historyIndex: 0,
         fileList: [],
         loading: true,
-        viewMode: "icon",
-        iconColumns: 4,
-        sortField: "name",
-        sortOrder: "asc",
       };
       return {
         modals: [...state.modals, newModal],
@@ -335,26 +260,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
         modal.id === id ? { ...modal, zIndex: state.nextZIndex } : modal,
       ),
       nextZIndex: state.nextZIndex + 1,
-    })),
-  navigateToPath: (id, path, title) =>
-    set((state) => ({
-      modals: state.modals.map((modal) => {
-        if (modal.id !== id) return modal;
-
-        // 截断当前索引之后的历史
-        const newHistory = modal.history.slice(0, modal.historyIndex + 1);
-        newHistory.push(path);
-
-        return {
-          ...modal,
-          path,
-          title: title || modal.title,
-          history: newHistory,
-          historyIndex: newHistory.length - 1,
-          fileList: [],
-          loading: true,
-        };
-      }),
     })),
   goBack: (id) =>
     set((state) => ({
@@ -375,25 +280,6 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
     const modal = get().modals.find((m) => m.id === id);
     return modal ? modal.historyIndex > 0 : false;
   },
-  setModalFileList: (id, files) =>
-    set((state) => ({
-      modals: state.modals.map((modal) => {
-        if (modal.id !== id) return modal;
-        // 应用当前排序
-        const { sortField, sortOrder } = modal;
-        const sorted = [...files].sort((a, b) => {
-          const cmp =
-            sortField === "name"
-              ? a.name.localeCompare(b.name)
-              : sortField === "size"
-                ? (a.size || 0) - (b.size || 0)
-                : (a.modifiedTime ? new Date(a.modifiedTime).getTime() : 0) -
-                  (b.modifiedTime ? new Date(b.modifiedTime).getTime() : 0);
-          return sortOrder === "asc" ? cmp : -cmp;
-        });
-        return { ...modal, fileList: sorted };
-      }),
-    })),
   setModalLoading: (id, loading) =>
     set((state) => ({
       modals: state.modals.map((modal) =>
@@ -403,40 +289,4 @@ export const useModalStore = create<ExplorerModalStore>((set, get) => ({
   getModalById: (id) => {
     return get().modals.find((m) => m.id === id);
   },
-  setModalViewMode: (id, mode) =>
-    set((state) => ({
-      modals: state.modals.map((modal) =>
-        modal.id === id ? { ...modal, viewMode: mode } : modal,
-      ),
-    })),
-  setModalIconColumns: (id, columns) =>
-    set((state) => ({
-      modals: state.modals.map((modal) =>
-        modal.id === id ? { ...modal, iconColumns: columns } : modal,
-      ),
-    })),
-  setModalSort: (id, field, order) =>
-    set((state) => ({
-      modals: state.modals.map((modal) => {
-        if (modal.id !== id) return modal;
-        const sorted = [...modal.fileList].sort((a, b) => {
-          const cmp =
-            field === "name"
-              ? a.name.localeCompare(b.name)
-              : field === "size"
-                ? (a.size || 0) - (b.size || 0)
-                : (a.modifiedTime ? new Date(a.modifiedTime).getTime() : 0) -
-                  (b.modifiedTime ? new Date(b.modifiedTime).getTime() : 0);
-          return order === "asc" ? cmp : -cmp;
-        });
-        return {
-          ...modal,
-          sortField: field,
-          sortOrder: order,
-          fileList: sorted,
-        };
-      }),
-    })),
-  setCopiedFiles: (files) => set({ copiedFiles: files }),
-  clearCopiedFiles: () => set({ copiedFiles: [] }),
 }));
