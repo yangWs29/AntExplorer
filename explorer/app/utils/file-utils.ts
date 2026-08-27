@@ -18,7 +18,10 @@ export function isArchiveFile(fileName: string): boolean {
     ".tar.bz2",
   ];
   const lowerName = fileName.toLowerCase();
-  return archiveExtensions.some((ext) => lowerName.endsWith(ext));
+  if (archiveExtensions.some((ext) => lowerName.endsWith(ext))) return true;
+  // 支持拆分包格式，如 .7z.001, .rar.001, .zip.001 等
+  if (/\.\d{3,}$/.test(lowerName)) return true;
+  return false;
 }
 
 /**

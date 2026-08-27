@@ -22,7 +22,6 @@ import {
   pasteFiles,
   readDirectory,
   compressFile,
-  extractArchive,
   getFileStatsAction,
   createDirectoryAction,
 } from "@/app/actions/file-actions";
@@ -56,7 +55,7 @@ const FinderContextMenu = ({
     setDetailFile,
     setRenamingFile,
   } = useFinderScope(modalId);
-  const { openAnalyzeModal } = useModalStore();
+  const { openAnalyzeModal, openExtractModal } = useModalStore();
 
   // 编辑文本文件
   const handleEditTextFile = () => {
@@ -174,21 +173,10 @@ const FinderContextMenu = ({
     }
   };
 
-  // 解压缩
-  const handleExtract = async () => {
+  // 解压缩 - 打开解压弹窗
+  const handleExtract = () => {
     if (!filePath || !fileName) return;
-    try {
-      setLoading(true);
-      await extractArchive(filePath);
-      const files = await readDirectory(currentPath);
-      setFileList(files);
-      message.success("解压成功");
-    } catch (error) {
-      message.error("解压失败");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    openExtractModal({ archivePath: filePath, archiveName: fileName });
   };
 
   // 新建文件夹

@@ -243,16 +243,22 @@ export async function compressFile(
 export async function extractArchive(
   archivePath: string,
   targetDir?: string,
+  password?: string,
 ): Promise<{ success: boolean; extractPath: string }> {
   try {
     const dirPath = targetDir || join(archivePath, "..");
-    const archiveName = basename(archivePath, extname(archivePath));
+    // 处理拆分包：.7z.001 -> 去掉 .001 得到基础名称
+    const baseName = archivePath.replace(/\.\d{3,}$/, "");
+    const archiveName = basename(baseName, extname(baseName));
     const extractPath = join(dirPath, archiveName);
 
+    const options: Record<string, any> = { $bin: binPath };
+    if (password) {
+      options.password = password;
+    }
+
     return new Promise((resolve, reject) => {
-      const seven = Seven.extractFull(archivePath, extractPath, {
-        $bin: binPath,
-      });
+      const seven = Seven.extractFull(archivePath, extractPath, options);
 
       seven.on("end", () => {
         resolve({ success: true, extractPath });
@@ -267,6 +273,41 @@ export async function extractArchive(
     console.error("Error extracting archive:", error);
     throw error;
   }
+}
+
+// 列出压缩包内文件
+export async function listArchiveContentsAction(
+  archivePath: string,
+  password?: string,
+): Promise<{ files: { path: string; size: number; compressed?: number }[] }> {
+  const options: Record<string, any> = { $bin: binPath };
+  if (password) {
+    options.password = password;
+  }
+
+  return new Promise((resolve, reject) => {
+    const seven = Seven.list(archivePath, options);
+    const entries: { path: string; size: number; compressed?: number }[] = [];
+
+    seven.on("data", (chunk: any) => {
+      if (chunk.file) {
+        entries.push({
+          path: chunk.file,
+          size: chunk.size || 0,
+          compressed: chunk.sizeCompressed || 0,
+        });
+      }
+    });
+
+    seven.on("end", () => {
+      resolve({ files: entries });
+    });
+
+    seven.on("error", (err: any) => {
+      console.error("List archive error:", err);
+      reject(err);
+    });
+  });
 }
 
 // 获取目录树结构（初始加载第一层）
