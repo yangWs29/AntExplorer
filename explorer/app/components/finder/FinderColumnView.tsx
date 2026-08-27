@@ -18,6 +18,7 @@ import {
 } from "@/app/hooks/global-image-preview-context";
 import { isVideoFile } from "@/app/hooks/use-video-preview";
 import { useVideoPreview } from "@/app/hooks/video-preview-context";
+import type { VideoListItem } from "@/app/hooks/video-preview-context";
 import { isArchiveFile, toFileUrl } from "@/app/utils/file-utils";
 import FinderContextMenu from "./FinderContextMenu";
 
@@ -164,7 +165,7 @@ interface ColumnPanelProps {
     isDirectory: boolean;
   }) => void;
   openPreview: (items: string[], current: number) => void;
-  openVideoPreview: (url: string, name: string) => void;
+  openVideoPreview: (url: string, name: string, list?: VideoListItem[]) => void;
 }
 
 const ColumnPanel = ({
@@ -221,8 +222,13 @@ const ColumnPanel = ({
           openPreview(items, index);
         }
       } else if (isVideoFile(item.name)) {
+        const videoFiles = files.filter((f) => isVideoFile(f.name));
+        const videoList: VideoListItem[] = videoFiles.map((f) => ({
+          url: toFileUrl(f.path),
+          title: f.name,
+        }));
         const videoUrl = toFileUrl(item.path);
-        openVideoPreview(videoUrl, item.name);
+        openVideoPreview(videoUrl, item.name, videoList);
       } else {
         onOpenItem(item);
       }
